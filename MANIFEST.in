@@ -1,0 +1,6 @@
+recursive-include api *.so
+recursive-include api *.mo
+recursive-exclude samples *
+exclude ui
+
+recursive-include api *
