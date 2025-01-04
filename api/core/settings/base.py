@@ -109,7 +109,7 @@ INSTALLED_APPS = [
 # Project-Specific Apps
 INSTALLED_APPS += [
     'accounts',
-    'api.v1.sample',
+    'v1.sample',
 ]
 
 # The ID of the site that this Django project is associated with.
@@ -165,7 +165,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 DATABASES = {
     'default': dj_database_url.config(default=DATABASE_URL)
-
 }
 
 # Password validation

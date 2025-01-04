@@ -57,16 +57,16 @@ The easiest way to get started is by using Docker Compose:
    cp .env.sample .env
    ```
 
-### CSRF_TRUSTED_ORIGINS
-
-- This setting defines the trusted domains for CSRF verification.
-- In a production environment, you must include the domain of your admin portal to ensure proper access.
-
-- Use a comma-separated list of trusted domains. For example:
-
-   ```bash
-   export CSRF_TRUSTED_ORIGINS=https://admin.example.com,https://api.example.com
-   ```
+> NOTE: How to Set CSRF_TRUSTED_ORIGINS
+>
+> - This setting defines the trusted domains for CSRF verification.
+> - In a production environment, you must include the domain of your admin portal to ensure proper access.
+> 
+> - Use a comma-separated list of trusted domains. For example:
+> 
+>    ```bash
+>    export CSRF_TRUSTED_ORIGINS=https://admin.example.com,https://api.example.com
+>    ```
 
 3. Start the services:
 
@@ -135,7 +135,11 @@ It is recommended to use an IDE with AI enhancements, such as VS Code with Copil
 5. Start the development server:
 
    ```bash
+   cd api
    python manage.py runserver
+
+   celery -A core worker --loglevel debug
+   celery -A core beat --loglevel debug
    ```
 
 6. Access the services:
@@ -337,6 +341,28 @@ To create a new app under the `v1` directory in your Django project, follow thes
 6. Finally, you can start developing your API endpoints in the `views.py` file of your new app.
 
 By following these steps, you can effectively create and set up a new app under the `v1` directory in your Django project.
+
+## Project Customization
+
+### How to Change Project Name `Mito`?
+
+You can change the project name from `Mito` to a name of your choice if you prefer a different one. The only impact of changing the project name occurs after installation; the package name will be updated to your new name, and all related references will also be modified. For instance, the production Docker name will become NewName-api. If this is your intention, please follow the instructions provided.
+
+``` bash
+cd tools
+./project_manager.sh --project-name myproject --dry-run
+./project_manager.sh --project-name myproject
+```
+
+### How to Change Django Project Name `api`?
+
+After installing this package, the project name will be `mito-xxx` and the package name will be `api`. You can freely change the package name since it only affects the installation path and has no impact on Django's runtime functionality. To rename the `api` package to a different name, please use the provided script.
+
+``` bash
+cd tools
+./project_manager.sh --app-name myapi --dry-run
+./project_manager.sh --app-name myapi
+```
 
 ## Project Modules
 
