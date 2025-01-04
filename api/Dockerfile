@@ -33,13 +33,15 @@ RUN pip install virtualenv && \
 # Start final stage with clean Python slim image
 FROM python:3.12-slim
 
+ENV DJANGO_PROJECT_DIR=api
+
 # Set working directory for the application
 WORKDIR /opt/venv
 
 # Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /app/api/docker/entrypoint.sh /
-COPY --from=builder /app/api/docker/logratate.conf /etc/logrotate.d/gunicorn
+COPY --from=builder /app/${DJANGO_PROJECT_DIR}/docker/entrypoint.sh /
+COPY --from=builder /app/${DJANGO_PROJECT_DIR}/docker/logratate.conf /etc/logrotate.d/gunicorn
 
 # Install runtime dependencies and configure permissions
 RUN apt-get update && \
@@ -55,9 +57,6 @@ RUN apt-get update && \
         postgresql-client && \
     rm -rf /var/lib/apt/lists/* && \
     chmod +x /entrypoint.sh
-
-# Expose port 8000 for Django application
-EXPOSE 8000
 
 # Configure cron job to rotate logs every 5 minutes
 RUN echo "*/5 * * * * root /usr/sbin/logrotate /etc/logrotate.d/gunicorn" \
