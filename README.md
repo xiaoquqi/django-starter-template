@@ -360,8 +360,8 @@ After installing this package, the project name will be `mito-xxx` and the packa
 
 ``` bash
 cd tools
-./project_manager.sh --app-name myapi --dry-run
-./project_manager.sh --app-name myapi
+./project_manager.sh --django-project-name myapi --dry-run
+./project_manager.sh --django-project-name myapi
 ```
 
 ## Project Modules
