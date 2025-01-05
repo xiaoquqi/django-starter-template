@@ -86,9 +86,8 @@ fi
 # Function to replace project name in specific files with exact matches
 replace_project_name() {
     if [[ -n "$PROJECT_NEW_NAME" ]]; then
-        # 定义需要替换的文件列表
         local files_to_replace=(
-            "setup.cfg"
+            "pyproject.toml"
             ".env.sample"
             ".env"
             ".gitignore"
@@ -124,7 +123,7 @@ replace_django_project_name() {
         declare -A replacements=(
             ["${CURRENT_PATH}/docker-compose.*.yml"]="dockerfile: ${DJANGO_PROJECT_OLD_NAME}/Dockerfile|dockerfile: ${DJANGO_PROJECT_NEW_NAME}/Dockerfile"
             ["${CURRENT_PATH}/MANIFEST.in"]="recursive-include ${DJANGO_PROJECT_OLD_NAME}|recursive-include ${DJANGO_PROJECT_NEW_NAME}"
-            ["${CURRENT_PATH}/setup.cfg"]="\b${DJANGO_PROJECT_OLD_NAME}\b|${DJANGO_PROJECT_NEW_NAME}"
+            ["${CURRENT_PATH}/pyproject.toml"]="packages = \\[\"${DJANGO_PROJECT_OLD_NAME}\"\\]|packages = \\[\"${DJANGO_PROJECT_NEW_NAME}\"\\]"
             ["${CURRENT_PATH}/tox.ini"]="flake8 ${DJANGO_PROJECT_OLD_NAME}|flake8 ${DJANGO_PROJECT_NEW_NAME}"
             ["${CURRENT_PATH}/api/Dockerfile"]="ENV DJANGO_PROJECT_DIR=${DJANGO_PROJECT_OLD_NAME}|ENV DJANGO_PROJECT_DIR=${DJANGO_PROJECT_NEW_NAME}"
         )

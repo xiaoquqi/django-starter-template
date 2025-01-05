@@ -28,7 +28,7 @@ RUN pip install virtualenv && \
     pip install setuptools && \
     cd /app && \
     pip install -r requirements.txt && \
-    python setup.py install
+    pip install .
 
 # Start final stage with clean Python slim image
 FROM python:3.12-slim
