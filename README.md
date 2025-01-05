@@ -107,6 +107,8 @@ It is recommended to use an IDE with AI enhancements, such as VS Code with Copil
    cd your_new_project
    ```
 
+   > NOTE: If you do not want to use the default project name `mito` and Django project name `api`, you can use the provided script in the project located at `tools/project_manager.sh` to replace them. Please refer to the documentation for more details on how to do this:[How to Change Project Name `Mito`?](#how-to-change-project-name-mito) and [How to Change Django Project Name `api`?](#how-to-change-django-project-name-api).
+
 2. Create and activate a virtual environment:
 
    ```bash
