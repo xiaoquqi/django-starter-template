@@ -70,6 +70,18 @@ The easiest way to get started is by using Docker Compose:
 
 3. Start the services:
 
+   **Scenario 1: Only API and Database Services**
+
+   If your application only requires the API and database services without any asynchronous tasks or scheduled tasks, you can start the services as follows:
+
+   ```bash
+   docker-compose up -f docker-compose.prod.yaml -d mito-api mito-mariadb
+   ```
+
+   **Scenario 2: Full Services with Asynchronous and Scheduled Tasks**
+
+   If your application requires all services including asynchronous tasks and scheduled tasks, you can start the services as follows:
+
    ```bash
    docker-compose up -f docker-compose.prod.yaml -d
    ```
@@ -180,6 +192,7 @@ api                          // The main application directory containing all pr
 │   ├── settings             // Directory containing various settings for the application.
 │   │   ├── base.py          // Base settings for the Django project.
 │   │   ├── celery.py        // Celery-specific settings.
+│   │   ├── constrants.py    // Global variables.
 │   │   ├── __init__.py      // Initializes the settings package.
 │   │   ├── logging_config.py // Configuration for logging in the application.
 │   │   ├── rest.py          // Settings specific to Django REST framework.
@@ -220,6 +233,8 @@ NEW_VARIABLE = os.getenv("NEW_VARIABLE", "default_value")  # Set default value
 
 # ... existing code ...
 ```
+
+For settings or static variables unrelated to Django but related to the code, it is recommended to add them to the core/settings/constants.py file.
 
 3. Use the new environment variable in the code: Now, you can use this new environment variable in other parts of the project. For example, you can use it in views, models, or other settings.
 

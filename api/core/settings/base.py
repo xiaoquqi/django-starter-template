@@ -18,6 +18,7 @@ from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
+from .constants import *
 from .logging_config import configure_logging
 
 # ============================
