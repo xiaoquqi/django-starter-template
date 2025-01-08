@@ -134,17 +134,31 @@ It is recommended to use an IDE with AI enhancements, such as VS Code with Copil
    # You will be prompted to enter a password
    ```
 
-5. Start the development server:
+5. Start the Django Service:
+
+When developing new APIs, you can skip starting Celery services and the database service, as Django defaults to using SQLite as its database.
 
    ```bash
    cd api
    python manage.py runserver
+   ```
 
+6. (Optional) Start Celery Services:
+
+To utilize Celery, ensure Redis is running before starting Celery. You can use the existing Docker Compose file to start Redis as follows:
+
+   ```bash
+   docker-compose -f docker-compose.dev.yaml up redis -d
+   ```
+
+Subsequently, you can start all Celery services.
+
+   ```bash
    celery -A core worker --loglevel debug
    celery -A core beat --loglevel debug
    ```
 
-6. Access the services:
+7. Access the services:
    - Swagger API Documentation: http://localhost:18080/swagger/
    - Admin Interface: http://localhost:18080/admin/
        - Default username and password: admin/adminpassword
