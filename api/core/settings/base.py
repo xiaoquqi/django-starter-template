@@ -104,6 +104,15 @@ INSTALLED_APPS = [
     # Provides tools for generating interactive API documentation with Swagger UI
     # or ReDoc, making it easier to visualize and test API endpoints.
     'drf_yasg',
+
+    # A Django app that provides support for periodic task scheduling
+    # using Celery. It allows you to manage and schedule tasks in a
+    # database-backed way, making it easier to handle recurring tasks.
+    'django_celery_beat',
+
+    # A Django app that stores the results of Celery tasks in the database,
+    # allowing for easy retrieval and management of task outcomes.
+    'django_celery_results',
 ]
 
 # Project-Specific Apps

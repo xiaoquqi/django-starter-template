@@ -24,6 +24,11 @@ app = Celery("core")
 logger.info("Loading Celery configuration from Django settings")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
+# Update the result backend to use Django database
+app.conf.update(
+    result_backend='django-db'
+)
+
 # Automatically discover all task modules registered in the Django project.
 # Celery will search for 'tasks.py' in each app and load any tasks defined there.
 logger.info("Discovering tasks in registered Django applications")

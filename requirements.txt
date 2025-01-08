@@ -49,6 +49,9 @@ mysqlclient==2.1.1
 celery==5.3.1
 # Django Celery Beat for periodic tasks scheduling
 django-celery-beat==2.7.0
+# Django Celery Results stores the results of Celery tasks in the database,
+# allowing for easy retrieval and management of task outcomes.
+django_celery_results
 # Real-time monitoring tool for Celery tasks
 flower==2.0.1
 # Redis client for Python

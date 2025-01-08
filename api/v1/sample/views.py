@@ -1,12 +1,17 @@
+import json
+import logging
+
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from drf_yasg.utils import swagger_auto_schema
-
 from .models import Post, Tag, Category
 from .serializers import PostSerializer, TagSerializer, CategorySerializer
 from .tasks import async_task
+
+logger = logging.getLogger(__name__)
 
 class PostListCreateAPIView(APIView):
     """
@@ -47,6 +52,24 @@ class PostListCreateAPIView(APIView):
 
             # NOTE(Ray): This is where the asynchronous task is called
             async_task.delay(post.id)
+
+            # Check if the periodic task already exists, create it if not,
+            # otherwise output a warning message to avoid duplicate tasks.
+            schedule, created = IntervalSchedule.objects.get_or_create(
+                every=1, period=IntervalSchedule.MINUTES,
+            )
+            if created:
+                # Create a new periodic task with the interval schedule.
+                PeriodicTask.objects.create(
+                    interval=schedule,
+                    name='Show current time every minute',
+                    task='v1.sample.tasks.show_current_time',
+                    args=json.dumps([]),
+                )
+            else:
+                # Output a warning message if the task already exists.
+                logger.warning("Periodic task already exists, "
+                               "no need to recreate.")
 
             return Response(PostSerializer(post).data,
                             status=status.HTTP_201_CREATED)

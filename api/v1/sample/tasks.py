@@ -1,4 +1,5 @@
 from celery import shared_task
+from datetime import datetime
 import logging
 
 from .models import Post
@@ -44,3 +45,18 @@ def heartbeat():
     posts_count = Post.objects.count()
     logger.info(f"Do Heartbeat for posts, found {posts_count} posts")
     return True
+
+
+@shared_task()
+def show_current_time():
+    """
+    Outputs the current time to demonstrate dynamic scheduling of tasks.
+
+    This function is intended to be called as a scheduled task to log the
+    current time whenever it is executed.
+
+    Returns:
+        None
+    """
+    current_time = datetime.now()
+    logger.info(f"Current time: {current_time}")
