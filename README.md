@@ -324,6 +324,23 @@ api
 │   └── views.py
 ```
 
+## API
+
+To make compatible with the frontend, the API response format is as follows:
+
+```json
+{
+    "data": {
+        "...": "..."
+    },
+    "code": 0
+}
+```
+
+In frontend, the code is 0, which means success. If the code is not 0, it means an error occurred. You can make customization error code in the API response. A good best practice is to define different error codes for different types of errors.
+
+So a middleware is added to the Django project to convert the response to the format above. The middleware is enabled by default, but you can disable `core.settings.middlewares.AxiosResponseMiddleware` by removing the middleware from the MIDDLEWARE list in the base.py file.
+
 ## Django Application
 
 ### Why We Have a v1 Directory

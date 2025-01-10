@@ -18,7 +18,7 @@ from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
-from .constants import *
+from .globals import *
 from .logging_config import configure_logging
 
 # ============================
@@ -143,6 +143,10 @@ MIDDLEWARE = [
     # It sets the language environment based on the user's language preferences.
     # The middleware checks headers (e.g., Accept-Language) or session settings.
     'django.middleware.locale.LocaleMiddleware',
+]
+
+MIDDLEWARE += [
+    'core.settings.middlewares.AxiosResponseMiddleware'
 ]
 
 ROOT_URLCONF = 'core.urls'

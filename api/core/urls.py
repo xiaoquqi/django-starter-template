@@ -1,5 +1,5 @@
-from django.http import HttpResponse
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 
 from .swagger import schema_view
@@ -10,7 +10,8 @@ urlpatterns = [
     # Health check endpoint
     # Used by Docker/Kubernetes for container health monitoring
     # Returns a simple 'OK' response to indicate the application is running
-    path('health', lambda _: HttpResponse('OK')),
+    path('health', lambda _: JsonResponse({'health': 'OK'}, status=200)),
+    
 
     # Swagger UI documentation route
     # Displays the API documentation using Swagger UI.
