@@ -1,5 +1,3 @@
-from django.contrib import admin
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Category, Tag, Post
@@ -17,6 +15,12 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ['id', 'name']
+
+
+class PostUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -68,6 +72,13 @@ class PostSerializer(serializers.ModelSerializer):
         post.save()
 
         return post
+
+    def update(self, instance, validated_data):
+        # Only update title and content fields
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         representation = {

@@ -3,41 +3,42 @@ from django.urls import path
 URL configuration for the sample app in the v1 API.
 
 This module defines URL patterns for the sample app, including paths for
-creating and listing posts, tags, and categories.
+creating, listing, updating and deleting posts, tags, and categories.
 
 Routes:
 - 'posts/': Provides a list of posts and allows for creating new posts.
+- 'posts/<int:pk>/': Allows updating and deleting specific posts.
 - 'tags/': Provides a list of tags and allows for creating new tags.
+- 'tags/<int:pk>/': Allows updating and deleting specific tags.
 - 'categories/': Provides a list of categories and allows for creating new
     categories.
+- 'categories/<int:pk>/': Allows updating and deleting specific categories.
 
 Each route is associated with a corresponding view that handles the request.
 
 Views:
-- PostListCreateAPIView: Handles listing and creating posts.
-- TagListCreateAPIView: Handles listing and creating tags.
-- CategoryListCreateAPIView: Handles listing and creating categories.
+- PostListCreateAPIView: Handles listing, creating, updating and deleting posts.
+- TagListCreateAPIView: Handles listing, creating, updating and deleting tags.
+- CategoryListCreateAPIView: Handles listing, creating, updating and deleting
+    categories.
 """
 from .views import (
-        PostListCreateAPIView,
-        TagListCreateAPIView,
-        CategoryListCreateAPIView,
+    PostListCreateView, PostDetailView,
+    TagListCreateView, TagDetailView,
+    CategoryListCreateView, CategoryDetailView
 )
 
 urlpatterns = [
-    path(
-        'posts/',
-        PostListCreateAPIView.as_view(),
-        name='post-list-create'
-    ),
-    path(
-        'tags/',
-        TagListCreateAPIView.as_view(),
-        name='tag-list-create'
-    ),
-    path(
-        'categories/',
-        CategoryListCreateAPIView.as_view(),
-        name='category-list-create'
-    ),
+    # Post URLs
+    path('posts/', PostListCreateView.as_view(), name='post-list'),
+    path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
+    
+    # Tag URLs
+    path('tags/', TagListCreateView.as_view(), name='tag-list'),
+    path('tags/<int:pk>/', TagDetailView.as_view(), name='tag-detail'),
+    
+    # Category URLs
+    path('categories/', CategoryListCreateView.as_view(), name='category-list'),
+    path('categories/<int:pk>/', CategoryDetailView.as_view(), 
+         name='category-detail'),
 ]
