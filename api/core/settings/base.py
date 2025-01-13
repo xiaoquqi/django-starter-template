@@ -146,7 +146,7 @@ MIDDLEWARE = [
 ]
 
 MIDDLEWARE += [
-    'core.settings.middlewares.AxiosResponseMiddleware'
+    # Custom middleware
 ]
 
 ROOT_URLCONF = 'core.urls'

@@ -34,13 +34,16 @@ class PostListCreateView(APIView):
         try:
             posts = Post.objects.all()
             serializer = PostSerializer(posts, many=True)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error fetching posts: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new post",
@@ -69,22 +72,24 @@ class PostListCreateView(APIView):
                 # Save the post
                 post = serializer.save()
 
-                # Trigger sample task
-                task = async_task.delay(post.id)
-
                 # Return both post data and task id
                 return Response({
-                    "post": serializer.data,
-                    "task_id": task.id
+                    "code": 0,
+                    "data": {
+                        "post": serializer.data
+                    }
                 }, status=status.HTTP_201_CREATED)
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating post: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PostDetailView(APIView):
     """
@@ -113,18 +118,21 @@ class PostDetailView(APIView):
         try:
             post = self.get_object(pk)
             if not post:
-                return Response(
-                    {"error": "Post not found"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Post not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = PostSerializer(post)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error retrieving post {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a specific post",
@@ -139,21 +147,27 @@ class PostDetailView(APIView):
         try:
             post = self.get_object(pk)
             if not post:
-                return Response(
-                    {"error": "Post not found"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Post not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = PostUpdateSerializer(post, data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "code": 0,
+                    "data": serializer.data
+                })
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating post {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a specific post",
@@ -167,18 +181,21 @@ class PostDetailView(APIView):
         try:
             post = self.get_object(pk)
             if not post:
-                return Response(
-                    {"error": "Post not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Post not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             post.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({
+                "code": 0,
+                "data": {}
+            }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting post {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Tag views
 class TagListCreateView(APIView):
@@ -196,13 +213,16 @@ class TagListCreateView(APIView):
         try:
             tags = Tag.objects.all()
             serializer = TagSerializer(tags, many=True)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error fetching tags: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new tag",
@@ -215,14 +235,20 @@ class TagListCreateView(APIView):
             serializer = TagSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "code": 0,
+                    "data": serializer.data
+                }, status=status.HTTP_201_CREATED)
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating tag: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TagDetailView(APIView):
     """
@@ -251,18 +277,21 @@ class TagDetailView(APIView):
         try:
             tag = self.get_object(pk)
             if not tag:
-                return Response(
-                    {"error": "Tag not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Tag not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = TagSerializer(tag)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error retrieving tag {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a specific tag",
@@ -277,21 +306,27 @@ class TagDetailView(APIView):
         try:
             tag = self.get_object(pk)
             if not tag:
-                return Response(
-                    {"error": "Tag not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Tag not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = TagSerializer(tag, data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "code": 0,
+                    "data": serializer.data
+                })
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating tag {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a specific tag",
@@ -305,18 +340,21 @@ class TagDetailView(APIView):
         try:
             tag = self.get_object(pk)
             if not tag:
-                return Response(
-                    {"error": "Tag not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Tag not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             tag.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({
+                "code": 0,
+                "data": {}
+            }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting tag {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # Category views
 class CategoryListCreateView(APIView):
@@ -334,13 +372,16 @@ class CategoryListCreateView(APIView):
         try:
             categories = Category.objects.all()
             serializer = CategorySerializer(categories, many=True)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error fetching categories: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new category",
@@ -353,14 +394,20 @@ class CategoryListCreateView(APIView):
             serializer = CategorySerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "code": 0,
+                    "data": serializer.data
+                }, status=status.HTTP_201_CREATED)
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating category: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CategoryDetailView(APIView):
     """
@@ -389,18 +436,21 @@ class CategoryDetailView(APIView):
         try:
             category = self.get_object(pk)
             if not category:
-                return Response(
-                    {"error": "Category not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Category not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category)
-            return Response(serializer.data)
+            return Response({
+                "code": 0,
+                "data": serializer.data
+            })
         except Exception as e:
             logging.error(f"Error retrieving category {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update a specific category",
@@ -415,21 +465,27 @@ class CategoryDetailView(APIView):
         try:
             category = self.get_object(pk)
             if not category:
-                return Response(
-                    {"error": "Category not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Category not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category, data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    "code": 0,
+                    "data": serializer.data
+                })
+            return Response({
+                "code": status.HTTP_400_BAD_REQUEST,
+                "data": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating category {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete a specific category",
@@ -443,15 +499,18 @@ class CategoryDetailView(APIView):
         try:
             category = self.get_object(pk)
             if not category:
-                return Response(
-                    {"error": "Category not found"}, 
-                    status=status.HTTP_404_NOT_FOUND
-                )
+                return Response({
+                    "code": status.HTTP_404_NOT_FOUND,
+                    "data": {"error": "Category not found"}
+                }, status=status.HTTP_404_NOT_FOUND)
             category.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response({
+                "code": 0,
+                "data": {}
+            }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting category {pk}: {str(e)}")
-            return Response(
-                {"error": "Internal server error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "data": {"error": "Internal server error"}
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

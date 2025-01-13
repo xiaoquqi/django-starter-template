@@ -16,11 +16,13 @@ JWTCookieAuthentication:
 Below, JWTAuthentication is used, requiring tokens in the request header.
 
 DRF Parameters:
-- DEFAULT_RENDERER_CLASSES: Renders API responses with camelCase keys.
-  - CamelCaseJSONRenderer: Converts response keys to camelCase format.
+- DEFAULT_RENDERER_CLASSES: Renders API responses in standardized format.
+  - CustomJSONRenderer: Ensures consistent response structure with code, message
+    and data.
   - BrowsableAPIRenderer: Provides a browsable API interface.
 - DEFAULT_PARSER_CLASSES: Parses incoming camelCase request data to snake_case.
-  - CamelCaseJSONParser: Handles JSON with camelCase keys for internal processing.
+  - CamelCaseJSONParser: Handles JSON with camelCase keys for internal
+    processing.
 """
 
 from datetime import timedelta
@@ -30,7 +32,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
-        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+        'core.settings.renders.CustomJSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'DEFAULT_PARSER_CLASSES': (
