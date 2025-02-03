@@ -25,11 +25,12 @@ const props = withDefaults(
       closeClass?: ClassType;
       modal?: boolean;
       open?: boolean;
+      overlayBlur?: number;
       showClose?: boolean;
       zIndex?: number;
     }
   >(),
-  { appendTo: 'body', showClose: true, zIndex: 1000 },
+  { appendTo: 'body', showClose: true },
 );
 const emits = defineEmits<
   DialogContentEmits & { close: []; closed: []; opened: [] }
@@ -82,18 +83,23 @@ defineExpose({
     <Transition name="fade">
       <DialogOverlay
         v-if="open && modal"
-        :style="{ zIndex, position }"
+        :style="{
+          ...(zIndex ? { zIndex } : {}),
+          position,
+          backdropFilter:
+            overlayBlur && overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+        }"
         @click="() => emits('close')"
       />
     </Transition>
     <DialogContent
       ref="contentRef"
-      :style="{ zIndex, position }"
+      :style="{ ...(zIndex ? { zIndex } : {}), position }"
       @animationend="onAnimationEnd"
       v-bind="forwarded"
       :class="
         cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%] w-full p-6 shadow-lg outline-none sm:rounded-xl',
+          'z-popup bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%] w-full p-6 shadow-lg outline-none sm:rounded-xl',
           props.class,
         )
       "

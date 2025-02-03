@@ -1,5 +1,7 @@
 import type { Component, Ref } from 'vue';
 
+import type { MaybePromise } from '@vben-core/typings';
+
 import type { ModalApi } from './modal-api';
 
 export interface ModalProps {
@@ -100,6 +102,10 @@ export interface ModalProps {
    */
   openAutoFocus?: boolean;
   /**
+   * 弹窗遮罩模糊效果
+   */
+  overlayBlur?: number;
+  /**
    * 是否显示取消按钮
    * @default true
    */
@@ -109,6 +115,10 @@ export interface ModalProps {
    * @default true
    */
   showConfirmButton?: boolean;
+  /**
+   * 提交中（锁定弹窗状态）
+   */
+  submitting?: boolean;
   /**
    * 弹窗标题
    */
@@ -151,7 +161,7 @@ export interface ModalApiOptions extends ModalState {
    * 关闭前的回调，返回 false 可以阻止关闭
    * @returns
    */
-  onBeforeClose?: () => void;
+  onBeforeClose?: () => MaybePromise<boolean | undefined>;
   /**
    * 点击取消按钮的回调
    */

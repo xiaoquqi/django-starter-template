@@ -17,6 +17,7 @@ interface SheetContentProps extends DialogContentProps {
   class?: any;
   modal?: boolean;
   open?: boolean;
+  overlayBlur?: number;
   side?: SheetVariants['side'];
   zIndex?: number;
 }
@@ -27,7 +28,6 @@ defineOptions({
 
 const props = withDefaults(defineProps<SheetContentProps>(), {
   appendTo: 'body',
-  zIndex: 1000,
 });
 
 const emits = defineEmits<
@@ -75,12 +75,23 @@ function onAnimationEnd(event: AnimationEvent) {
 <template>
   <DialogPortal :to="appendTo">
     <Transition name="fade">
-      <SheetOverlay v-if="open && modal" :style="{ zIndex, position }" />
+      <SheetOverlay
+        v-if="open && modal"
+        :style="{
+          ...(zIndex ? { zIndex } : {}),
+          position,
+          backdropFilter:
+            overlayBlur && overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+        }"
+      />
     </Transition>
     <DialogContent
       ref="contentRef"
-      :class="cn(sheetVariants({ side }), props.class)"
-      :style="{ zIndex, position }"
+      :class="cn('z-popup', sheetVariants({ side }), props.class)"
+      :style="{
+        ...(zIndex ? { zIndex } : {}),
+        position,
+      }"
       @animationend="onAnimationEnd"
       v-bind="{ ...forwarded, ...$attrs }"
     >

@@ -273,6 +273,24 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ============================
+# URL Configuration
+# ============================
+# APPEND_SLASH: Control1s Django's URL trailing slash behavior. When set to False,
+# Django will not automatically append a trailing slash to URLs that lack one.
+#
+# By default (True), if a URL doesn't match any pattern and doesn't end in a slash,
+# Django redirects to the same URL with a slash appended. For example:
+# - Request to 'example.com/path' redirects to 'example.com/path/'
+#
+# When False:
+# - No automatic redirection occurs
+# - URLs must match patterns exactly as defined in urls.py
+# - Useful for REST APIs where trailing slashes may not be desired
+# - Helps maintain cleaner URLs without redirects
+APPEND_SLASH = False
+
+
+# ============================
 # External Libraries Configuration
 # ============================
 from .celery import *
