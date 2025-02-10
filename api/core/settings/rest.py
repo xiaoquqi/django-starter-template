@@ -41,6 +41,26 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    # Pagination Settings
+    # -----------------
+    # DEFAULT_PAGINATION_CLASS options:
+    # - PageNumberPagination: Classic page-based style (?page=2)
+    # - LimitOffsetPagination: Limit/skip style (?limit=10&offset=20)
+    # - CursorPagination: Cursor-based for large datasets, prevents skipping
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+
+    # PAGE_SIZE: Number of items per page
+    # Can be overridden per view using:
+    # - pagination_class attribute
+    # - page_size attribute
+    'PAGE_SIZE': 10,
+
+    # Additional pagination settings (optional):
+    # ---------------------------------------
+    # 'PAGINATE_BY_PARAM': 'page_size',  # Allow client to override page size
+    # 'MAX_PAGE_SIZE': 100,              # Maximum limit for page size
+    # 'PAGE_QUERY_PARAM': 'p',           # Custom page parameter (default: page)
+    # 'PAGE_SIZE_QUERY_PARAM': 'size',   # Allow client to set page size
 }
 
 # SimpleJWT Settings:

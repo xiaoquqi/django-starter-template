@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.paginations import APIPagination
 from .models import Category, Post, Tag
 from .serializers import (
     CategorySerializer,
@@ -30,14 +31,24 @@ class PostListCreateView(APIView):
         responses={200: PostSerializer(many=True)}
     )
     def get(self, request):
-        """Returns a list of all posts"""
+        """
+        Returns a list of all posts.
+        """
         try:
+            # Note on pagination:
+            # - For APIView, we need to manually handle pagination in the
+            #   get method
+            # - If using GenericAPIView, you can simply set pagination_class
+            #   attribute and pagination will be handled automatically
+            # - Example with GenericAPIView:
+            #     class PostListCreateView(GenericAPIView):
+            #         pagination_class = APIPagination
             posts = Post.objects.all()
-            serializer = PostSerializer(posts, many=True)
-            return Response({
-                "code": 0,
-                "data": serializer.data
-            })
+            paginator = APIPagination()
+            paginated_posts = paginator.paginate_queryset(posts, request)
+            serializer = PostSerializer(paginated_posts, many=True)
+
+            return paginator.get_paginated_response(serializer.data)
         except Exception as e:
             logging.error(f"Error fetching posts: {str(e)}")
             return Response({
