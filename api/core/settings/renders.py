@@ -5,7 +5,8 @@ consistent structure with code, message and data fields.
 """
 
 from rest_framework.renderers import JSONRenderer
-from utils.constrants import SUCCESS_MESSAGE, FAILED_MESSAGE
+from rest_framework import status
+from utils.constrants import SUCCESS_MESSAGE, FAILED_MESSAGE, SUCCESS_CODE
 
 
 class CustomJSONRenderer(JSONRenderer):
@@ -58,14 +59,16 @@ class CustomJSONRenderer(JSONRenderer):
                                   renderer_context)
 
         response = renderer_context.get('response')
-        is_success = 200 <= response.status_code < 300
+        is_success = (status.HTTP_200_OK <= response.status_code < 
+                     status.HTTP_300_MULTIPLE_CHOICES)
 
         # Ensure data is a dictionary
         if not isinstance(data, dict):
             data = {'data': data}
 
         # Extract code and message from the response
-        code = data.get('code', 0 if is_success else response.status_code)
+        code = data.get('code', SUCCESS_CODE if is_success else
+                        response.status_code)
         message = data.get('message',
                            SUCCESS_MESSAGE if is_success else
                            FAILED_MESSAGE)
