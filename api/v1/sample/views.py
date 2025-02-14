@@ -10,6 +10,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.paginations import APIPagination
+from core.swagger import (get_pagination_schema,
+                          get_standard_response_schema,
+                          get_page_parameters,
+                          get_error_response_schema,
+                          get_list_response_schema)
 from .models import Category, Post, Tag
 from .serializers import (
     CategorySerializer,
@@ -18,6 +23,7 @@ from .serializers import (
     TagSerializer,
 )
 from .tasks import async_task
+from utils.constrants import SUCCESS_CODE
 
 
 class PostListCreateView(APIView):
@@ -27,22 +33,31 @@ class PostListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Get a list of all posts",
-        responses={200: PostSerializer(many=True)}
+        operation_description="Get a list of all posts with pagination",
+        manual_parameters=get_page_parameters(),
+        responses={
+            200: get_standard_response_schema(
+                get_pagination_schema(PostSerializer)
+            ),
+            500: get_error_response_schema(code=500)
+        }
     )
     def get(self, request):
         """
         Returns a list of all posts.
         """
         try:
-            # Note on pagination:
-            # - For APIView, we need to manually handle pagination in the
-            #   get method
-            # - If using GenericAPIView, you can simply set pagination_class
-            #   attribute and pagination will be handled automatically
-            # - Example with GenericAPIView:
-            #     class PostListCreateView(GenericAPIView):
-            #         pagination_class = APIPagination
+            # Pagination Notes:
+            #
+            # APIView requires manual pagination handling in get() method.
+            #
+            # GenericAPIView provides automatic pagination by setting the
+            # pagination_class attribute.
+            #
+            # Example:
+            #   class PostListCreateView(GenericAPIView):
+            #       pagination_class = APIPagination
+            #
             posts = Post.objects.all()
             paginator = APIPagination()
             paginated_posts = paginator.paginate_queryset(posts, request)
@@ -60,16 +75,7 @@ class PostListCreateView(APIView):
         operation_description="Create a new post",
         request_body=PostSerializer,
         responses={
-            201: openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'post': openapi.Schema(type=openapi.TYPE_OBJECT),
-                    'task_id': openapi.Schema(
-                        type=openapi.TYPE_STRING,
-                        description='Celery task ID'
-                    )
-                }
-            )
+            201: get_standard_response_schema(PostSerializer)
         }
     )
     def post(self, request):
@@ -85,10 +91,8 @@ class PostListCreateView(APIView):
 
                 # Return both post data and task id
                 return Response({
-                    "code": 0,
-                    "data": {
-                        "post": serializer.data
-                    }
+                    "code": SUCCESS_CODE,
+                    "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
 
             return Response({
@@ -120,8 +124,8 @@ class PostDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Get a specific post",
         responses={
-            200: PostSerializer,
-            404: "Not found"
+            200: get_standard_response_schema(PostSerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def get(self, request, pk):
@@ -133,9 +137,10 @@ class PostDetailView(APIView):
                     "code": status.HTTP_404_NOT_FOUND,
                     "data": {"error": "Post not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
+
             serializer = PostSerializer(post)
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": serializer.data
             })
         except Exception as e:
@@ -149,8 +154,8 @@ class PostDetailView(APIView):
         operation_description="Update a specific post",
         request_body=PostUpdateSerializer,
         responses={
-            200: PostUpdateSerializer,
-            404: "Not found"
+            200: get_standard_response_schema(PostUpdateSerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def put(self, request, pk):
@@ -166,7 +171,7 @@ class PostDetailView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "code": 0,
+                    "code": SUCCESS_CODE,
                     "data": serializer.data
                 })
             return Response({
@@ -183,8 +188,8 @@ class PostDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Delete a specific post",
         responses={
-            204: "No Content",
-            404: "Not found"
+            204: get_standard_response_schema(),
+            404: get_error_response_schema(code=404)
         }
     )
     def delete(self, request, pk):
@@ -198,7 +203,7 @@ class PostDetailView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
             post.delete()
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
@@ -217,7 +222,11 @@ class TagListCreateView(APIView):
 
     @swagger_auto_schema(
         operation_description="Get a list of all tags",
-        responses={200: TagSerializer(many=True)}
+        responses={
+            200: get_standard_response_schema(
+                get_list_response_schema(TagSerializer)
+            )
+        }
     )
     def get(self, request):
         """Returns a list of all tags"""
@@ -225,7 +234,7 @@ class TagListCreateView(APIView):
             tags = Tag.objects.all()
             serializer = TagSerializer(tags, many=True)
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": serializer.data
             })
         except Exception as e:
@@ -238,7 +247,9 @@ class TagListCreateView(APIView):
     @swagger_auto_schema(
         operation_description="Create a new tag",
         request_body=TagSerializer,
-        responses={201: TagSerializer}
+        responses={
+            201: get_standard_response_schema(TagSerializer)
+        }
     )
     def post(self, request):
         """Creates a new tag"""
@@ -247,7 +258,7 @@ class TagListCreateView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "code": 0,
+                    "code": SUCCESS_CODE,
                     "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
             return Response({
@@ -279,8 +290,8 @@ class TagDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Get a specific tag",
         responses={
-            200: TagSerializer,
-            404: "Not found"
+            200: get_standard_response_schema(TagSerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def get(self, request, pk):
@@ -294,7 +305,7 @@ class TagDetailView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = TagSerializer(tag)
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": serializer.data
             })
         except Exception as e:
@@ -308,8 +319,8 @@ class TagDetailView(APIView):
         operation_description="Update a specific tag",
         request_body=TagSerializer,
         responses={
-            200: TagSerializer,
-            404: "Not found"
+            200: get_standard_response_schema(TagSerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def put(self, request, pk):
@@ -325,7 +336,7 @@ class TagDetailView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "code": 0,
+                    "code": SUCCESS_CODE,
                     "data": serializer.data
                 })
             return Response({
@@ -342,8 +353,8 @@ class TagDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Delete a specific tag",
         responses={
-            204: "No Content",
-            404: "Not found"
+            204: get_standard_response_schema({}),
+            404: get_error_response_schema(code=404)
         }
     )
     def delete(self, request, pk):
@@ -357,7 +368,7 @@ class TagDetailView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
             tag.delete()
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
@@ -376,7 +387,11 @@ class CategoryListCreateView(APIView):
 
     @swagger_auto_schema(
         operation_description="Get a list of all categories",
-        responses={200: CategorySerializer(many=True)}
+        responses={
+            200: get_standard_response_schema(
+                get_list_response_schema(CategorySerializer)
+            )
+        }
     )
     def get(self, request):
         """Returns a list of all categories"""
@@ -384,7 +399,7 @@ class CategoryListCreateView(APIView):
             categories = Category.objects.all()
             serializer = CategorySerializer(categories, many=True)
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": serializer.data
             })
         except Exception as e:
@@ -397,7 +412,9 @@ class CategoryListCreateView(APIView):
     @swagger_auto_schema(
         operation_description="Create a new category",
         request_body=CategorySerializer,
-        responses={201: CategorySerializer}
+        responses={
+            201: get_standard_response_schema(CategorySerializer)
+        }
     )
     def post(self, request):
         """Creates a new category"""
@@ -406,7 +423,7 @@ class CategoryListCreateView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "code": 0,
+                    "code": SUCCESS_CODE,
                     "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
             return Response({
@@ -438,8 +455,8 @@ class CategoryDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Get a specific category",
         responses={
-            200: CategorySerializer,
-            404: "Not found"
+            200: get_standard_response_schema(CategorySerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def get(self, request, pk):
@@ -453,7 +470,7 @@ class CategoryDetailView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category)
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": serializer.data
             })
         except Exception as e:
@@ -467,8 +484,8 @@ class CategoryDetailView(APIView):
         operation_description="Update a specific category",
         request_body=CategorySerializer,
         responses={
-            200: CategorySerializer,
-            404: "Not found"
+            200: get_standard_response_schema(CategorySerializer),
+            404: get_error_response_schema(code=404)
         }
     )
     def put(self, request, pk):
@@ -484,7 +501,7 @@ class CategoryDetailView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response({
-                    "code": 0,
+                    "code": SUCCESS_CODE,
                     "data": serializer.data
                 })
             return Response({
@@ -501,8 +518,8 @@ class CategoryDetailView(APIView):
     @swagger_auto_schema(
         operation_description="Delete a specific category",
         responses={
-            204: "No Content",
-            404: "Not found"
+            204: get_standard_response_schema({}),
+            404: get_error_response_schema(code=404)
         }
     )
     def delete(self, request, pk):
@@ -516,7 +533,7 @@ class CategoryDetailView(APIView):
                 }, status=status.HTTP_404_NOT_FOUND)
             category.delete()
             return Response({
-                "code": 0,
+                "code": SUCCESS_CODE,
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:

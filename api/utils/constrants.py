@@ -6,3 +6,5 @@ it is recommended to place them in the core/settings/globals.py file.
 
 SUCCESS_MESSAGE = "success"
 FAILED_MESSAGE = "failed"
+
+SUCCESS_CODE = 0
