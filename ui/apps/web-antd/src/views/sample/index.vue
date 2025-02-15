@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { VxeGridListeners, VxeGridProps } from '#/adapter/vxe-table';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { Page } from '@vben/common-ui';
 
@@ -7,11 +7,7 @@ import { Button, message } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
-//import DocButton from '../doc-button.vue';
-//import { MOCK_TABLE_DATA } from './table-data';
-
 import { getPostListApi } from '#/api/sample';
-import { onMounted } from 'vue';
 
 interface RowType {
   id: number;
@@ -25,6 +21,10 @@ interface RowType {
 }
 
 const gridOptions: VxeGridProps<RowType> = {
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
+  },
   columns: [
     { title: '序号', type: 'seq', width: 50 },
     { field: 'id', title: 'ID' },
@@ -32,11 +32,30 @@ const gridOptions: VxeGridProps<RowType> = {
     { field: 'content', title: '内容', showOverflow: true },
     { field: 'author', title: '作者' },
     { field: 'category', title: '分类' },
-    { field: 'tags', title: '标签' },
+    {
+      field: 'tags',
+      title: '标签',
+      formatter: ({ cellValue }) => Array.isArray(cellValue) ? cellValue.join(', ') : cellValue
+    },
     { field: 'created_at', title: '创建时间', sortable: true },
     { field: 'updated_at', title: '更新时间', sortable: true },
   ],
-  data: [],
+  keepSource: true,
+  proxyConfig: {
+    ajax: {
+      query: async ({ page }) => {
+        const response = await getPostListApi({
+          page: page.currentPage,
+          page_size: page.pageSize,
+        });
+        return response;
+      },
+    },
+    response: {
+      result: 'results',
+      total: 'count'
+    }
+  },
   pagerConfig: {
     enabled: true,
     pageSize: 10,
@@ -44,6 +63,13 @@ const gridOptions: VxeGridProps<RowType> = {
   },
   sortConfig: {
     multiple: true,
+  },
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    // import: true,
+    refresh: true,
+    zoom: true,
   },
 };
 
@@ -53,50 +79,30 @@ const gridEvents: VxeGridListeners<RowType> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions });
-
-const showBorder = gridApi.useStore((state) => state.gridOptions?.border);
-const showStripe = gridApi.useStore((state) => state.gridOptions?.stripe);
-
-function changeBorder() {
-  gridApi.setGridOptions({
-    border: !showBorder.value,
-  });
-}
-
-function changeStripe() {
-  gridApi.setGridOptions({
-    stripe: !showStripe.value,
-  });
-}
-
-function changeLoading() {
-  gridApi.setLoading(true);
-  setTimeout(() => {
-    gridApi.setLoading(false);
-  }, 2000);
-}
-
-async function fetchTableData() {
-  try {
-    gridApi.setLoading(true);
-    const { data } = await getPostListApi();
-    gridApi.setData(data);
-  } catch (error) {
-    message.error('获取数据失败');
-  } finally {
-    gridApi.setLoading(false);
-  }
-}
-
-onMounted(() => {
-  fetchTableData();
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridOptions,
 });
+
+//async function fetchTableData() {
+//  try {
+//    gridApi.setLoading(true);
+//    const { data } = await getPostListApi();
+//    gridApi.setData(data);
+//  } catch (error) {
+//    message.error('获取数据失败');
+//  } finally {
+//    gridApi.setLoading(false);
+//  }
+//}
+//
+//onMounted(() => {
+//  fetchTableData();
+//});
 </script>
 
 <template>
   <Page
-    description="Sample表格示例，使用vxe-table组件，并进行二次封装。"
+    description="Sample表格示例，用于演示调用Django API获取数据后的数据展现。"
     title="Sample表格示例"
   >
     <Grid table-title="Post列表" table-title-help="用于展现所有Post">

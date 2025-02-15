@@ -21,7 +21,7 @@ schema_view = get_schema_view(
         title="API Documentation",
         default_version='v1',
         description="API documentation for API",
-        terms_of_service="https://hyperbdr.oneprocloud.com/",
+        terms_of_service="https://mito.sunqi.site/",
         contact=openapi.Contact(email="xiaoquqi@gmail.com"),
         license=openapi.License(name="License"),
     ),
@@ -240,7 +240,7 @@ def get_error_response_schema(code=None, message=None):
             }
         )
     }
-    
+
     return openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties=properties

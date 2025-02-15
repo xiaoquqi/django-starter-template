@@ -4,8 +4,8 @@ import type { Post } from './types';
 /**
  * 获取文章列表
  */
-export function getPostListApi() {
-  return requestClient.get<Post[]>('/posts/');
+export async function getPostListApi(params?: { page?: number; page_size?: number }) {
+  return requestClient.get<{Post}>('/posts/', { params });
 }
 
 /**
