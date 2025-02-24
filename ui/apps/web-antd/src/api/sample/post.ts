@@ -5,7 +5,7 @@ import type { Post } from './types';
  * 获取文章列表
  */
 export async function getPostListApi(params?: { page?: number; page_size?: number }) {
-  return requestClient.get<{Post}>('/posts/', { params });
+  return requestClient.get<{ results: Post[]; count: number }>('/posts/', { params });
 }
 
 /**
