@@ -3,14 +3,22 @@ import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { Page } from '@vben/common-ui';
 
-import { Button, message, Modal, Form, Input, Select, Spin } from 'ant-design-vue';
+import {
+  Button, message, Modal, Form, Input, Select, Spin,
+} from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
-import { getPostListApi, createPostApi, getTagListApi, getCategoryListApi } from '#/api/sample';
+import {
+  getPostListApi,
+  createPostApi,
+  getTagListApi,
+  getCategoryListApi,
+} from '#/api/sample';
 
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 
+// Type definition for table row structure
 interface RowType {
   id: number;
   title: string;
@@ -22,27 +30,27 @@ interface RowType {
   updated_at: string;
 }
 
+// Grid configuration with proper type safety
 const gridOptions: VxeGridProps<RowType> = {
   checkboxConfig: {
     highlight: true,
-    labelField: 'name',
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
+    { title: 'Seq', type: 'seq', width: 50 },
     { field: 'id', title: 'ID' },
-    { field: 'title', title: '标题', showOverflow: true },
-    { field: 'content', title: '内容', showOverflow: true },
-    { field: 'author', title: '作者' },
-    { field: 'category', title: '分类' },
+    { field: 'title', title: 'Title', showOverflow: true },
+    { field: 'content', title: 'Content', showOverflow: true },
+    { field: 'author', title: 'Author' },
+    { field: 'category', title: 'Category' },
     {
       field: 'tags',
-      title: '标签',
-      formatter: ({ cellValue }) => Array.isArray(cellValue) ? cellValue.join(', ') : cellValue
+      title: 'Tags',
+      formatter: ({ cellValue }) =>
+        Array.isArray(cellValue) ? cellValue.join(', ') : cellValue
     },
-    { field: 'created_at', title: '创建时间', sortable: true },
-    { field: 'updated_at', title: '更新时间', sortable: true },
+    { field: 'created_at', title: 'Created At', sortable: true },
+    { field: 'updated_at', title: 'Updated At', sortable: true },
   ],
-  keepSource: true,
   proxyConfig: {
     ajax: {
       query: async ({ page }) => {
@@ -63,21 +71,11 @@ const gridOptions: VxeGridProps<RowType> = {
     pageSize: 10,
     pageSizes: [10, 20, 50, 100],
   },
-  sortConfig: {
-    multiple: true,
-  },
   toolbarConfig: {
     custom: true,
     export: true,
-    // import: true,
     refresh: true,
     zoom: true,
-  },
-};
-
-const gridEvents: VxeGridListeners<RowType> = {
-  cellClick: ({ row }) => {
-    message.info(`cell-click: ${row.title}`);
   },
 };
 
@@ -99,27 +97,32 @@ const initialValues = ref({
   category: undefined,
 });
 
-// 重置表单状态
+// Reset form state when modal closes
 const resetForm = () => {
   formRef.value?.resetFields();
   submitting.value = false;
 };
 
-// 改进获取选项的错误处理
+// Fetch options with error handling and loading state
 const fetchOptions = async () => {
   try {
     loading.value = true;
+    // Parallel API calls for better performance
     const [tagsRes, categoriesRes] = await Promise.all([
       getTagListApi(),
       getCategoryListApi()
     ]);
 
-    // 修改为直接使用名称作为值
-    tagsOptions.value = tagsRes.map(t => ({ label: t.name, value: t.name })); // 使用名称作为value
-    categoriesOptions.value = categoriesRes.map(c => ({ label: c.name, value: c.name })); // 使用名称作为value
+    // Transform API response to Select options format
+    tagsOptions.value = tagsRes.map(t =>
+      ({ label: t.name, value: t.name }));
+    categoriesOptions.value = categoriesRes.map(c =>
+      ({ label: c.name, value: c.name }));
   } catch (error) {
-    message.error(`获取选项数据失败: ${error.message}`);
-    console.error('Failed to fetch options:', error);
+    // Unified error handling for API failures
+    message.error(`Failed to fetch options: ${error.message}`);
+    console.error('API Error:', error);
+    // Reset options to prevent stale data
     tagsOptions.value = [];
     categoriesOptions.value = [];
   } finally {
@@ -127,7 +130,7 @@ const fetchOptions = async () => {
   }
 };
 
-// 修改表单提交处理
+// Form submission handler with validation
 const handleSubmit = async () => {
   if (submitting.value) return;
 
@@ -135,39 +138,35 @@ const handleSubmit = async () => {
     submitting.value = true;
     const values = await formRef.value?.validateFields();
 
-    // 直接提交名称而不是ID
+    // Submit form data directly using names instead of IDs
+    // (Backend expects name strings for category/tags)
     await createPostApi({
       ...values,
-      tags: values.tags || [],
-      category: values.category, // 直接使用名称字符串
-      author: 1,
+      tags: values.tags || [],  // Ensure array type safety
+      category: values.category,
+      author: 1,  // Hardcoded for demo (should use actual auth system)
     });
 
-    message.success('创建成功');
+    message.success('Post created successfully');
     visible.value = false;
     resetForm();
+    // Refresh grid data after successful submission
     gridApi.value?.commitProxy('query');
   } catch (error) {
+    // Handle different error types appropriately
     if (error.isAxiosError) {
-      message.error(error.response?.data?.message || '创建失败：网络错误');
+      message.error(error.response?.data?.message || 'Network error');
     } else if (error.message) {
       message.error(error.message);
     } else {
-      message.error('创建失败：表单验证错误');
+      message.error('Form validation failed');
     }
   } finally {
     submitting.value = false;
   }
 };
 
-// 监听弹窗关闭
-watch(visible, (newVal) => {
-  if (!newVal) {
-    resetForm();
-  }
-});
-
-// 组件卸载时清理
+// Cleanup form state when component unmounts
 onUnmounted(() => {
   formRef.value?.resetFields();
 });
@@ -176,21 +175,22 @@ onMounted(fetchOptions);
 </script>
 
 <template>
-  <Page description="Sample表格示例，用于演示调用Django API获取数据后的数据展现。" title="Sample表格示例">
-    <div class="mb-4">
-    </div>
+  <Page
+    description="Sample table demonstrating data presentation from Django API"
+    title="Sample Table Demo"
+  >
 
-    <Grid table-title="Post列表" table-title-help="用于展现所有Post">
+    <Grid table-title="Post List" table-title-help="Used to display all Posts">
       <template #toolbar-tools>
         <Button class="mr-2" type="primary" @click="visible = true">
-          新增
+          Add
         </Button>
       </template>
     </Grid>
 
     <Modal
       v-model:visible="visible"
-      title="新建文章"
+      title="New Post"
       :confirmLoading="submitting"
       @ok="handleSubmit"
       @cancel="resetForm"
@@ -202,56 +202,60 @@ onMounted(fetchOptions);
           ref="formRef"
           :rules="{
             title: [
-              { required: true, message: '请输入标题' },
-              { max: 100, message: '标题最多100个字符' }
+              { required: true, message: 'Title is required' },
+              { max: 100, message: 'Max 100 characters' }
             ],
             content: [
-              { required: true, message: '请输入内容' },
-              { max: 1000, message: '内容最多1000个字符' }
+              { required: true, message: 'Content is required' },
+              { max: 1000, message: 'Max 1000 characters' }
             ],
             tags: [
               {
                 required: true,
-                message: '请选择至少一个标签',
+                message: 'Please select at least one tag',
                 type: 'array',
                 min: 1
               }
             ],
             category: [
-              { required: true, message: '请选择分类', type: 'string' }
+              { required: true, message: 'Please select a category', type: 'string' }
             ]
           }"
         >
-          <Form.Item label="标题" name="title">
-            <Input v-model:value="initialValues.title" placeholder="请输入文章标题" />
+          <Form.Item label="Title" name="title">
+            <Input
+              v-model:value="initialValues.title"
+              placeholder="Enter post title"
+            />
           </Form.Item>
-          <Form.Item label="内容" name="content">
-            <Input.TextArea v-model:value="initialValues.content" placeholder="请输入文章内容" :rows="4" />
+          <Form.Item label="Content" name="content">
+            <Input.TextArea
+              v-model:value="initialValues.content"
+              placeholder="Enter post content"
+              :rows="4"
+            />
           </Form.Item>
-          <Form.Item label="标签" name="tags">
+          <Form.Item label="Tags" name="tags">
             <Select
               v-model:value="initialValues.tags"
               mode="tags"
-              placeholder="请选择或输入标签"
+              placeholder="Select or enter tags"
               :options="tagsOptions"
               :maxTagCount="2"
               :loading="loading"
               :disabled="loading"
-              :fieldNames="{ label: 'label', value: 'value', options: 'options' }"
             />
           </Form.Item>
-          <Form.Item label="分类" name="category">
+          <Form.Item label="Category" name="category">
             <Select
               v-model:value="initialValues.category"
               mode="combobox"
-              placeholder="请选择或输入分类"
+              placeholder="Select or enter category"
               :options="categoriesOptions"
               :loading="loading"
               :disabled="loading"
-              :fieldNames="{ label: 'label', value: 'value' }"
             />
           </Form.Item>
-          <div style="color: red">Debug: {{ initialValues }}</div>
         </Form>
       </Spin>
     </Modal>
