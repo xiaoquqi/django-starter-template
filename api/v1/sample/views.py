@@ -33,8 +33,19 @@ class PostListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Get a list of all posts with pagination",
-        manual_parameters=get_page_parameters(),
+        operation_description="Get a list of all posts with pagination and sorting",
+        manual_parameters=get_page_parameters() + [
+            openapi.Parameter(
+                'ordering',
+                openapi.IN_QUERY,
+                description="Order field, with '-' for descending order, "
+                            "supports multiple fields, "
+                            "ex: ?ordering=title,-created_at",
+                type=openapi.TYPE_STRING,
+                required=False,
+                default="created_at"
+            ),
+        ],
         responses={
             200: get_standard_response_schema(
                 get_pagination_schema(PostSerializer)
@@ -47,6 +58,19 @@ class PostListCreateView(APIView):
         Returns a list of all posts.
         """
         try:
+            # Get ordering param from query params
+            # Default to 'created_at' if not provided
+            # Example: ?ordering=title or ?ordering=-title
+            ordering = request.query_params.get('ordering', 'created_at')
+            if not ordering:
+                ordering = 'created_at'
+
+            ordering_fields = ordering.split(',')
+
+            # Query all posts and apply the ordering
+            # The '-reverse' suffix determines sort direction in database
+            posts = Post.objects.all().order_by(*ordering_fields)
+
             # Pagination Notes:
             #
             # APIView requires manual pagination handling in get() method.
@@ -58,7 +82,6 @@ class PostListCreateView(APIView):
             #   class PostListCreateView(GenericAPIView):
             #       pagination_class = APIPagination
             #
-            posts = Post.objects.all()
             paginator = APIPagination()
             paginated_posts = paginator.paginate_queryset(posts, request)
             serializer = PostSerializer(paginated_posts, many=True)

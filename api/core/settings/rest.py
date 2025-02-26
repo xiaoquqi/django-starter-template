@@ -61,6 +61,27 @@ REST_FRAMEWORK = {
     # 'MAX_PAGE_SIZE': 100,              # Maximum limit for page size
     # 'PAGE_QUERY_PARAM': 'p',           # Custom page parameter (default: page)
     # 'PAGE_SIZE_QUERY_PARAM': 'size',   # Allow client to set page size
+
+    # --- Sorting Configuration ---
+    # DEFAULT_FILTER_BACKENDS: Enable ordering filter backend
+    # Using OrderingFilter allows clients to sort results via ?ordering=field_name
+    # Example: ?ordering=-created_date for descending sort
+    'DEFAULT_FILTER_BACKENDS': (
+        'rest_framework.filters.OrderingFilter',
+    ),
+
+    # Optional sorting parameters:
+    # -----------------------------------------------------------------
+    # ORDERING_PARAM: Custom query parameter name (default: 'ordering')
+    # 'ORDERING_PARAM': 'sort_by',
+
+    # ORDERING_FIELDS: Explicitly declare allowed sorting fields in views
+    # Note: Must be defined per view using ordering_fields attribute
+    # 'ORDERING_FIELDS': ['created_date', 'updated_date'],
+
+    # DEFAULT_ORDERING: Default sorting when no parameter is provided
+    # Example: '-created_date' for default descending sort by creation date
+    # 'DEFAULT_ORDERING': '-created_date',
 }
 
 # SimpleJWT Settings:
