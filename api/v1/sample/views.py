@@ -61,15 +61,17 @@ class PostListCreateView(APIView):
             # Get ordering param from query params
             # Default to 'created_at' if not provided
             # Example: ?ordering=title or ?ordering=-title
-            ordering = request.query_params.get('ordering', 'created_at')
+            ordering = request.query_params.get('ordering', '-created_at')
             if not ordering:
-                ordering = 'created_at'
+                ordering = '-created_at'
 
             ordering_fields = ordering.split(',')
+            logging.info(f"Ordering fields: {ordering_fields}")
 
             # Query all posts and apply the ordering
             # The '-reverse' suffix determines sort direction in database
             posts = Post.objects.all().order_by(*ordering_fields)
+            logging.info(f"Posts: {posts}")
 
             # Pagination Notes:
             #
