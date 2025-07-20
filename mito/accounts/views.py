@@ -1,6 +1,6 @@
 import logging
 
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 
 from .models import Profile
 from .serializers import WeChatLoginSerializer
@@ -23,8 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 class WeChatAppLoginView(APIView):
+    permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=WeChatLoginSerializer)
+    @extend_schema(request=WeChatLoginSerializer)
     def post(self, request):
         # Get the code from the request data
         code = request.data.get("code")

@@ -1,6 +1,5 @@
-recursive-include api *.so
-recursive-include api *.mo
+recursive-include mito *.so
+recursive-include mito *.mo
 recursive-exclude samples *
-exclude ui
 
-recursive-include api *
+recursive-include mito *

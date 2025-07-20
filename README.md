@@ -4,22 +4,111 @@ Mito comes from the biological term "Mitosis" (cell division). Just as cells div
 
 > Like cell division, one perfect template can create countless excellent projects.
 
+## Recent Updates (2025-07-20)
+
+This update incorporates practical improvements from several production projects, focusing on developer experience and code maintainability.
+
+### 🔧 **Major Improvements**
+
+#### **1. Swagger Documentation Optimization**
+- **Replaced legacy swagger modules** with `drf-spectacular` for better performance
+- **Reduced views.py code complexity** by abstracting common swagger configurations
+- **Implemented best practices** for handling large views.py files (see documentation in views.py headers)
+- **Enhanced API documentation** with standardized response formats and detailed pagination structures
+
+#### **2. Celery Development Workflow Enhancement**
+- **Added custom management commands** for testing Celery tasks without starting workers
+- **Implemented `show_time` command** with structured logging and debug controls
+- **Improved development efficiency** by allowing synchronous task testing during development
+
+#### **3. Docker Environment Optimization**
+- **Optimized production and development Docker configurations**
+- **Enhanced deployment workflows** for better development-to-production transitions
+- **Improved container orchestration** for both development and production environments
+
+#### **4. URL Structure Improvements**
+- **Eliminated trailing slashes** in Django URLs for cleaner API endpoints
+- **Updated auth module URLs** to follow consistent no-trailing-slash pattern
+- **Improved URL consistency** across all API endpoints
+
+### 🚀 **Developer Experience Enhancements**
+
+- **Reduced boilerplate code** in views through swagger abstractions
+- **Streamlined debugging process** with custom management commands
+- **Better code organization** with improved project structure
+- **Enhanced documentation** with comprehensive examples and usage patterns
+
+### 📋 **Technical Details**
+
+#### **Swagger Configuration (`core/swagger.py`)**
+```python
+# Before: Verbose inline swagger configurations
+@extend_schema(
+    responses={200: PostSerializer},
+    parameters=[...],
+    # ... many lines of configuration
+)
+
+# After: Clean, reusable configurations
+@extend_schema(
+    parameters=pagination_params() + [ordering_param()],
+    responses={200: pagination_response(PostSerializer)}
+)
+```
+
+#### **Management Commands**
+```bash
+# Test Celery tasks without starting workers
+python manage.py show_time --debug
+
+# Structured logging output
+2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Starting task
+```
+
+#### **URL Improvements**
+```python
+# Before: URLs with trailing slashes
+path('api/v1/auth/login/', LoginView.as_view(), name='login'),
+
+# After: Clean URLs without trailing slashes
+path('api/v1/auth/login', LoginView.as_view(), name='login'),
+```
+
+### 🎯 **Impact on Development**
+
+These updates significantly improve the development workflow by:
+- **Reducing code complexity** in views and API documentation
+- **Enabling faster debugging** of asynchronous tasks
+- **Providing better deployment flexibility** with optimized Docker configurations
+- **Creating cleaner API endpoints** with consistent URL patterns
+
 ## Why Choose Mito?
 
-- 🧬 **Great Foundation**: Integrates Django development best practices
-- 🚀 **Quick Start**: Create a complete project structure in minutes
-- 📦 **Ready to Use**: Pre-configured development environment and tools
-- 🛠 **Customizable**: Easily adjust project settings as needed
+Mito is a foundational framework for building REST APIs and asynchronous
+task execution based on Django. It is designed as a solid starting point
+for developing AI applications, with Docker-based deployment optimized
+for both development and production environments. The project philosophy
+is "don't reinvent the wheel"—Mito integrates proven solutions wherever
+possible, avoiding redundant development.
+
+A key aspect of Mito's development is the extensive use of AI-assisted
+tools such as Cursor for automated coding and testing. We encourage
+developers to leverage AI in generating and maintaining their projects
+with Mito, which can significantly boost productivity.
+
+**🤖 AI-First Development Philosophy:**
+- **Cursor Integration**: Optimized for AI-assisted development workflows
+- **Code Generation**: Leverage AI for rapid prototyping and testing
+- **Automated Testing**: AI-powered test generation and validation
+- **Documentation**: AI-assisted documentation and code comments
 
 ## Design Philosophy
 
 ### Frontend-Backend Separation
 
 - 🔄 **API-First Design**: Build standard RESTful APIs with Django REST framework
-- 🎯 **Flexible Frontend Integration**: Support Vue.js, React and other modern frontend frameworks
-  - Frontend code can be integrated in project's `ui` directory
-  - Or managed as separate project communicating via API
 - 📚 **API Documentation**: Integrated Swagger UI for interactive API docs
+- 🧹 **Code Simplification**: Abstracted common patterns to reduce boilerplate code
 
 ### Asynchronous Processing
 
@@ -36,7 +125,7 @@ Mito comes from the biological term "Mitosis" (cell division). Just as cells div
 This architecture provides:
 
 - Better scalability and maintainability
-- Clear separation of concerns  
+- Clear separation of concerns
 - Flexible technology choices
 - Powerful async processing capabilities
 
@@ -61,9 +150,9 @@ The easiest way to get started is by using Docker Compose:
 >
 > - This setting defines the trusted domains for CSRF verification.
 > - In a production environment, you must include the domain of your admin portal to ensure proper access.
-> 
+>
 > - Use a comma-separated list of trusted domains. For example:
-> 
+>
 >    ```bash
 >    export CSRF_TRUSTED_ORIGINS=https://admin.example.com,https://api.example.com
 >    ```
@@ -151,7 +240,7 @@ It is recommended to use an IDE with AI enhancements, such as VS Code with Copil
 When developing new APIs, you can skip starting Celery services and the database service, as Django defaults to using SQLite as its database.
 
    ```bash
-   cd api
+   cd mito
    python manage.py runserver
    ```
 
@@ -178,12 +267,12 @@ Subsequently, you can start all Celery services.
 
 ## Django Code Structure
 
-All the Django code is located in the api directory, which is generated by the django-admin startproject command. Therefore, all backend development is conducted within this directory.
+All the Django code is located in the mito directory, which is generated by the django-admin startproject command. Therefore, all backend development is conducted within this directory.
 
 ### Django Project Structure
 
 ```
-api                          // The main application directory containing all project-related files.
+mito                         // The main application directory containing all project-related files.
 ├── accounts                 // Directory for user account management and authentication.
 ├── core                     // Django project directory, contains all settings.
 │   ├── asgi.py              // ASGI configuration for asynchronous support.
@@ -192,7 +281,7 @@ api                          // The main application directory containing all pr
 │   ├── settings             // Directory containing various settings for the application.
 │   │   ├── base.py          // Base settings for the Django project.
 │   │   ├── celery.py        // Celery-specific settings.
-│   │   ├── constrants.py    // Global variables.
+│   │   ├── constants.py     // Global variables and constants.
 │   │   ├── __init__.py      // Initializes the settings package.
 │   │   ├── logging_config.py // Configuration for logging in the application.
 │   │   ├── rest.py          // Settings specific to Django REST framework.
@@ -207,6 +296,9 @@ api                          // The main application directory containing all pr
 ├── tests                    // Directory containing test cases for the application.
 └── v1                       // Version 1 of the API.
     └── sample               // Sample Django application
+        ├── management       // Management commands for the sample app
+        │   └── commands     // Custom Django management commands
+        │       └── show_time.py // Command to test Celery tasks
 ```
 
 ### Django Project Settings
@@ -223,7 +315,7 @@ To add new environment variables in a Django project and configure them at start
 
 First, define the new environment variable in the `.env.sample` file. For example, if you want to add a variable named `NEW_VARIABLE`, you can do it like this:
 
-2. Load the new environment variable in base.py: Next, you need to load this new environment variable in the api/core/settings/base.py file. You can use the os.getenv() function to retrieve the value of this variable.
+2. Load the new environment variable in base.py: Next, you need to load this new environment variable in the mito/core/settings/base.py file. You can use the os.getenv() function to retrieve the value of this variable.
 
 ``` python
 # ... existing code ...
@@ -248,7 +340,7 @@ def example_view(request):
     return JsonResponse({"new_variable": new_variable_value})
 ```
 
-4. Ensure that the .env file is loaded at startup: Make sure to load the .env file when the project starts so that the new environment variables can be read correctly. You have already used load_dotenv(ENV_DIR) in base.py to load the environment variables, ensuring that the new variables are read at startup. 
+4. Ensure that the .env file is loaded at startup: Make sure to load the .env file when the project starts so that the new environment variables can be read correctly. You have already used load_dotenv(ENV_DIR) in base.py to load the environment variables, ensuring that the new variables are read at startup.
 
 By following these steps, you can successfully add new environment variables and use them in your Django project.
 
@@ -256,7 +348,7 @@ By following these steps, you can successfully add new environment variables and
 
 ### JWT
 
-In this project, JWT (JSON Web Token) is used as the default authentication method. JWT allows you to securely transmit information between parties as a JSON object. 
+In this project, JWT (JSON Web Token) is used as the default authentication method. JWT allows you to securely transmit information between parties as a JSON object.
 
 #### How to use JWT?
 
@@ -324,7 +416,43 @@ api
 │   └── views.py
 ```
 
-## API
+## API Documentation
+
+### Swagger Configuration
+
+This project includes a comprehensive Swagger configuration system that provides:
+
+- **Standardized Response Format**: All API responses follow a consistent format with `code`, `message`, and `data` fields
+- **Detailed Pagination Documentation**: Complete pagination structure with `total`, `page`, `pageSize`, `next`, and `previous` fields
+- **Reusable Parameters**: Common parameters like pagination, ordering, and search are abstracted into reusable functions
+- **Dynamic Schema Generation**: Uses dynamic class creation to avoid naming conflicts while maintaining detailed schema structure
+
+**Usage Examples:**
+
+```python
+# Standard response
+@extend_schema(responses={200: response(PostSerializer)})
+
+# List response
+@extend_schema(responses={200: list_response(TagSerializer)})
+
+# Paginated response with parameters
+@extend_schema(
+    parameters=pagination_params() + [ordering_param()],
+    responses={200: pagination_response(PostSerializer)}
+)
+```
+
+**Available Functions:**
+
+- `response(serializer)`: Creates standard response wrapper for single objects
+- `list_response(serializer)`: Creates response wrapper for list endpoints
+- `pagination_response(serializer)`: Creates detailed pagination response
+- `pagination_params()`: Returns standard pagination parameters
+- `ordering_param(default="created_at")`: Returns ordering parameter
+- `search_param()`: Returns search parameter
+
+### API Response Format
 
 To make compatible with the frontend, the API response format is as follows:
 
@@ -349,7 +477,7 @@ In actual development, as features continue to iterate and update, the API inter
 
 ### Sample Application
 
-In the `api/v1/sample` directory, you will find a complete example of a Django application that implements a blogging system.
+In the `mito/v1/sample` directory, you will find a complete example of a Django application that implements a blogging system.
 
 This sample application contains a simple blog data structure, including posts, tags, and categories. Posts and tags have a many-to-many relationship, while posts and categories have a one-to-many relationship. You can also create a new post with new tags and categories, and the overridden create method will function in the serializers.py file. You can use this application as a sample and develop new applications according to your requirements.
 
@@ -367,7 +495,7 @@ To create a new app under the `v1` directory in your Django project, follow thes
    python manage.py startapp v1/your_new_app
    ```
 
-3. After the app is created, you will need to add it to your project's settings. Open `api/core/settings/base.py` and add the new app to the `INSTALLED_APPS` list:
+3. After the app is created, you will need to add it to your project's settings. Open `mito/core/settings/base.py` and add the new app to the `INSTALLED_APPS` list:
 
    ```python
    INSTALLED_APPS = [
@@ -389,6 +517,82 @@ To create a new app under the `v1` directory in your Django project, follow thes
 6. Finally, you can start developing your API endpoints in the `views.py` file of your new app.
 
 By following these steps, you can effectively create and set up a new app under the `v1` directory in your Django project.
+
+## Management Commands
+
+### Custom Management Commands
+
+This project includes custom Django management commands to help with development and testing. These commands are located in the `v1/sample/management/commands/` directory.
+
+#### show_time Command
+
+The `show_time` command allows you to test Celery tasks without starting a Celery worker. This is particularly useful for development and debugging purposes.
+
+**Usage:**
+
+```bash
+# Basic usage - show current time
+python manage.py show_time
+
+# Enable debug logging
+python manage.py show_time --debug
+
+# Enable verbose output (backward compatibility)
+python manage.py show_time --verbose
+
+# View help
+python manage.py show_time --help
+```
+
+**Features:**
+
+- **Structured Logging**: Uses Python's standard logging module with configurable levels
+- **Debug Control**: `--debug` flag enables detailed logging output
+- **Backward Compatibility**: `--verbose` flag maintains compatibility with older scripts
+- **Error Handling**: Comprehensive error handling with clear error messages
+- **Transaction Safety**: Uses database transactions for data consistency
+
+**Example Output:**
+
+```
+2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Info logging enabled
+2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Starting show_current_time task
+2025-07-20 02:56:43,738 - v1.sample.management.commands.show_time - INFO - Running show_current_time task...
+2025-07-20 02:56:43,748 v1.sample.tasks INFO     Current time: 2025-07-20 02:56:43.748130
+2025-07-20 02:56:43,748 - v1.sample.management.commands.show_time - INFO - Show current time task completed successfully!
+```
+
+**Creating Custom Commands:**
+
+To create your own management commands, follow this structure:
+
+```
+v1/your_app/management/
+├── __init__.py
+└── commands/
+    ├── __init__.py
+    └── your_command.py
+```
+
+Example command structure:
+
+```python
+from django.core.management.base import BaseCommand
+import logging
+
+logger = logging.getLogger(__name__)
+
+class Command(BaseCommand):
+    help = 'Description of your command'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--debug', action='store_true', help='Enable debug logging')
+
+    def handle(self, *args, **options):
+        logger.info('Starting your command...')
+        # Your command logic here
+        logger.info('Command completed successfully!')
+```
 
 ## Project Customization
 
@@ -423,7 +627,7 @@ This list contains the modules that already exist in this project.
 | djangorestframework_simplejwt      | Extension for JWT authentication support in Django REST framework.                             |
 | djangorestframework-camel-case     | Provides JSON renderers and parsers that convert between camelCase and snake_case.            |
 | dj-rest-auth                       | Extension for user authentication and registration.                                            |
-| drf-yasg                           | Tool for generating Swagger UI for APIs.                                                      |
+| drf-spectacular                    | Tool for generating OpenAPI 3.0 documentation for APIs.                                       |
 | dj-rest-auth[with_social]         | DJ-REST-AUTH extension with social authentication support.                                     |
 | python-dotenv                      | Library for loading environment variables from .env files.                                     |
 | dj_database_url                    | Library for parsing database URLs.                                                             |
@@ -431,3 +635,39 @@ This list contains the modules that already exist in this project.
 | django-celery-beat                | Extension for scheduling periodic tasks in Django.                                             |
 | flower                             | Tool for real-time monitoring of Celery tasks.                                                |
 | gunicorn                           | WSGI server for running the application in production.                                         |
+
+## Version History
+
+### v2.0.0 (2025-07-20) - Major Refactoring
+
+**🎯 Focus:** Developer Experience & Code Maintainability
+
+#### **Breaking Changes**
+- Replaced legacy swagger modules with `drf-spectacular`
+- Updated URL patterns to remove trailing slashes
+- Restructured project directory from `api/` to `mito/`
+
+#### **New Features**
+- **Custom Management Commands**: Added `show_time` command for Celery task testing
+- **Enhanced Swagger Configuration**: Abstracted common patterns into reusable functions
+- **Improved Logging**: Structured logging with debug controls in management commands
+- **Optimized Docker**: Enhanced production and development configurations
+
+#### **Improvements**
+- **Code Reduction**: Significantly reduced boilerplate in views.py
+- **Better Documentation**: Comprehensive API documentation with standardized formats
+- **Development Workflow**: Streamlined debugging and testing processes
+- **URL Consistency**: Cleaner API endpoints without trailing slashes
+
+#### **Technical Enhancements**
+- **Swagger Abstractions**: `response()`, `list_response()`, `pagination_response()` functions
+- **Parameter Reusability**: `pagination_params()`, `ordering_param()`, `search_param()`
+- **Management Commands**: Structured logging with `--debug` and `--verbose` options
+- **Docker Optimization**: Improved container orchestration for both environments
+
+### v1.0.0 (Initial Release)
+- Basic Django REST API template
+- JWT authentication system
+- Celery integration for async tasks
+- Docker containerization
+- Swagger UI integration

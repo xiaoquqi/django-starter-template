@@ -104,7 +104,7 @@ INSTALLED_APPS = [
 
     # Provides tools for generating interactive API documentation with Swagger UI
     # or ReDoc, making it easier to visualize and test API endpoints.
-    'drf_yasg',
+    'drf_spectacular',
 
     # A Django app that provides support for periodic task scheduling
     # using Celery. It allows you to manage and schedule tasks in a
@@ -296,3 +296,30 @@ APPEND_SLASH = False
 from .celery import *
 from .rest import *
 from .swagger import *
+
+# ============================
+# DRF Spectacular Configuration
+# ============================
+
+# DRF Spectacular settings for API documentation
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Mito API',
+    'DESCRIPTION': 'API documentation for Mito project',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
+    'CONTACT': {
+        'name': 'Ray Sun',
+        'email': 'xiaoquqi@gmail.com',
+    },
+    'LICENSE': {
+        'name': 'MIT License',
+    },
+    'TAGS': [
+        {'name': 'posts', 'description': 'Post management endpoints'},
+        {'name': 'tags', 'description': 'Tag management endpoints'},
+        {'name': 'categories', 'description': 'Category management endpoints'},
+        {'name': 'auth', 'description': 'Authentication endpoints'},
+    ],
+}

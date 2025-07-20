@@ -30,15 +30,15 @@ from .views import (
 
 urlpatterns = [
     # Post URLs
-    path('posts/', PostListCreateView.as_view(), name='post-list'),
-    path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
-    
+    path('api/v1/posts', PostListCreateView.as_view(), name='post-list'),
+    path('api/v1/posts/<int:pk>', PostDetailView.as_view(), name='post-detail'),
+
     # Tag URLs
-    path('tags/', TagListCreateView.as_view(), name='tag-list'),
-    path('tags/<int:pk>/', TagDetailView.as_view(), name='tag-detail'),
-    
+    path('api/v1/tags', TagListCreateView.as_view(), name='tag-list'),
+    path('api/v1/tags/<int:pk>', TagDetailView.as_view(), name='tag-detail'),
+
     # Category URLs
-    path('categories/', CategoryListCreateView.as_view(), name='category-list'),
-    path('categories/<int:pk>/', CategoryDetailView.as_view(), 
+    path('api/v1/categories', CategoryListCreateView.as_view(), name='category-list'),
+    path('api/v1/categories/<int:pk>', CategoryDetailView.as_view(),
          name='category-detail'),
 ]

@@ -1,20 +1,50 @@
-import logging
-import time
+"""
+Sample app views
 
-from django_celery_beat.models import IntervalSchedule, PeriodicTask
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+If the codebase becomes too large, you can split the views into multiple files
+and organize them under a dedicated 'views' directory. For example, create
+views/post.py, views/tag.py, and views/category.py for each resource type.
+Then, import and register these views in urls.py as needed.
+
+Reference directory structure:
+
+sample/
+├── __init__.py
+├── models.py
+├── serializers.py
+├── urls.py
+├── views/
+│   ├── __init__.py
+│   ├── post.py
+│   ├── tag.py
+│   └── category.py
+"""
+
+"""
+All imports are grouped and sorted according to the custom rules:
+1. Standard library imports
+2. Third-party library imports
+3. Local application imports
+"""
+
+import logging
+
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.paginations import APIPagination
-from core.swagger import (get_pagination_schema,
-                          get_standard_response_schema,
-                          get_page_parameters,
-                          get_error_response_schema,
-                          get_list_response_schema)
+from core.swagger import (
+    list_response,
+    ordering_param,
+    pagination_params,
+    pagination_response,
+    response,
+)
+from utils.constrants import SUCCESS_CODE
+
 from .models import Category, Post, Tag
 from .serializers import (
     CategorySerializer,
@@ -22,8 +52,6 @@ from .serializers import (
     PostUpdateSerializer,
     TagSerializer,
 )
-from .tasks import async_task
-from utils.constrants import SUCCESS_CODE
 
 
 class PostListCreateView(APIView):
@@ -32,26 +60,12 @@ class PostListCreateView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Get a list of all posts with pagination and sorting",
-        manual_parameters=get_page_parameters() + [
-            openapi.Parameter(
-                'ordering',
-                openapi.IN_QUERY,
-                description="Order field, with '-' for descending order, "
-                            "supports multiple fields, "
-                            "ex: ?ordering=title,-created_at",
-                type=openapi.TYPE_STRING,
-                required=False,
-                default="created_at"
-            ),
+    @extend_schema(
+        description="Get a list of all posts with pagination and sorting",
+        parameters=pagination_params() + [
+            ordering_param("created_at"),
         ],
-        responses={
-            200: get_standard_response_schema(
-                get_pagination_schema(PostSerializer)
-            ),
-            500: get_error_response_schema(code=500)
-        }
+        responses={200: pagination_response(PostSerializer)}
     )
     def get(self, request):
         """
@@ -93,15 +107,14 @@ class PostListCreateView(APIView):
             logging.error(f"Error fetching posts: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Create a new post",
-        request_body=PostSerializer,
-        responses={
-            201: get_standard_response_schema(PostSerializer)
-        }
+    @extend_schema(
+        description="Create a new post",
+        request=PostSerializer,
+        responses={201: response(PostSerializer)}
     )
     def post(self, request):
         """Creates a new post and triggers sample task"""
@@ -117,17 +130,20 @@ class PostListCreateView(APIView):
                 # Return both post data and task id
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Post created successfully",
                     "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
 
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating post: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -146,12 +162,9 @@ class PostDetailView(APIView):
             logging.error(f"Error fetching post {pk}: {str(e)}")
             raise
 
-    @swagger_auto_schema(
-        operation_description="Get a specific post",
-        responses={
-            200: get_standard_response_schema(PostSerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Get a specific post",
+        responses={200: response(PostSerializer)}
     )
     def get(self, request, pk):
         """Returns a specific post"""
@@ -160,28 +173,28 @@ class PostDetailView(APIView):
             if not post:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Post not found",
                     "data": {"error": "Post not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
 
             serializer = PostSerializer(post)
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Post retrieved successfully",
                 "data": serializer.data
             })
         except Exception as e:
             logging.error(f"Error retrieving post {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Update a specific post",
-        request_body=PostUpdateSerializer,
-        responses={
-            200: get_standard_response_schema(PostUpdateSerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Update a specific post",
+        request=PostUpdateSerializer,
+        responses={200: response(PostUpdateSerializer)}
     )
     def put(self, request, pk):
         """Updates a specific post"""
@@ -190,6 +203,7 @@ class PostDetailView(APIView):
             if not post:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Post not found",
                     "data": {"error": "Post not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = PostUpdateSerializer(post, data=request.data)
@@ -197,25 +211,25 @@ class PostDetailView(APIView):
                 serializer.save()
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Post updated successfully",
                     "data": serializer.data
                 })
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating post {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Delete a specific post",
-        responses={
-            204: get_standard_response_schema(),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Delete a specific post",
+        responses={204: None}
     )
     def delete(self, request, pk):
         """Deletes a specific post"""
@@ -224,17 +238,20 @@ class PostDetailView(APIView):
             if not post:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Post not found",
                     "data": {"error": "Post not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             post.delete()
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Post deleted successfully",
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting post {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -245,13 +262,9 @@ class TagListCreateView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Get a list of all tags",
-        responses={
-            200: get_standard_response_schema(
-                get_list_response_schema(TagSerializer)
-            )
-        }
+    @extend_schema(
+        description="Get a list of all tags",
+        responses={200: list_response(TagSerializer)}
     )
     def get(self, request):
         """Returns a list of all tags"""
@@ -260,21 +273,21 @@ class TagListCreateView(APIView):
             serializer = TagSerializer(tags, many=True)
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Tags retrieved successfully",
                 "data": serializer.data
             })
         except Exception as e:
             logging.error(f"Error fetching tags: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Create a new tag",
-        request_body=TagSerializer,
-        responses={
-            201: get_standard_response_schema(TagSerializer)
-        }
+    @extend_schema(
+        description="Create a new tag",
+        request=TagSerializer,
+        responses={201: response(TagSerializer)}
     )
     def post(self, request):
         """Creates a new tag"""
@@ -284,16 +297,19 @@ class TagListCreateView(APIView):
                 serializer.save()
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Tag created successfully",
                     "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating tag: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -312,12 +328,9 @@ class TagDetailView(APIView):
             logging.error(f"Error fetching tag {pk}: {str(e)}")
             raise
 
-    @swagger_auto_schema(
-        operation_description="Get a specific tag",
-        responses={
-            200: get_standard_response_schema(TagSerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Get a specific tag",
+        responses={200: response(TagSerializer)}
     )
     def get(self, request, pk):
         """Returns a specific tag"""
@@ -326,27 +339,27 @@ class TagDetailView(APIView):
             if not tag:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Tag not found",
                     "data": {"error": "Tag not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = TagSerializer(tag)
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Tag retrieved successfully",
                 "data": serializer.data
             })
         except Exception as e:
             logging.error(f"Error retrieving tag {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Update a specific tag",
-        request_body=TagSerializer,
-        responses={
-            200: get_standard_response_schema(TagSerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Update a specific tag",
+        request=TagSerializer,
+        responses={200: response(TagSerializer)}
     )
     def put(self, request, pk):
         """Updates a specific tag"""
@@ -355,6 +368,7 @@ class TagDetailView(APIView):
             if not tag:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Tag not found",
                     "data": {"error": "Tag not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = TagSerializer(tag, data=request.data)
@@ -362,25 +376,25 @@ class TagDetailView(APIView):
                 serializer.save()
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Tag updated successfully",
                     "data": serializer.data
                 })
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating tag {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Delete a specific tag",
-        responses={
-            204: get_standard_response_schema({}),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Delete a specific tag",
+        responses={204: None}
     )
     def delete(self, request, pk):
         """Deletes a specific tag"""
@@ -389,17 +403,20 @@ class TagDetailView(APIView):
             if not tag:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Tag not found",
                     "data": {"error": "Tag not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             tag.delete()
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Tag deleted successfully",
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting tag {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -410,13 +427,9 @@ class CategoryListCreateView(APIView):
     """
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Get a list of all categories",
-        responses={
-            200: get_standard_response_schema(
-                get_list_response_schema(CategorySerializer)
-            )
-        }
+    @extend_schema(
+        description="Get a list of all categories",
+        responses={200: list_response(CategorySerializer)}
     )
     def get(self, request):
         """Returns a list of all categories"""
@@ -425,21 +438,21 @@ class CategoryListCreateView(APIView):
             serializer = CategorySerializer(categories, many=True)
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Categories retrieved successfully",
                 "data": serializer.data
             })
         except Exception as e:
             logging.error(f"Error fetching categories: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Create a new category",
-        request_body=CategorySerializer,
-        responses={
-            201: get_standard_response_schema(CategorySerializer)
-        }
+    @extend_schema(
+        description="Create a new category",
+        request=CategorySerializer,
+        responses={201: response(CategorySerializer)}
     )
     def post(self, request):
         """Creates a new category"""
@@ -449,16 +462,19 @@ class CategoryListCreateView(APIView):
                 serializer.save()
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Category created successfully",
                     "data": serializer.data
                 }, status=status.HTTP_201_CREATED)
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error creating category: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -477,12 +493,9 @@ class CategoryDetailView(APIView):
             logging.error(f"Error fetching category {pk}: {str(e)}")
             raise
 
-    @swagger_auto_schema(
-        operation_description="Get a specific category",
-        responses={
-            200: get_standard_response_schema(CategorySerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Get a specific category",
+        responses={200: response(CategorySerializer)}
     )
     def get(self, request, pk):
         """Returns a specific category"""
@@ -491,27 +504,27 @@ class CategoryDetailView(APIView):
             if not category:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Category not found",
                     "data": {"error": "Category not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category)
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Category retrieved successfully",
                 "data": serializer.data
             })
         except Exception as e:
             logging.error(f"Error retrieving category {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Update a specific category",
-        request_body=CategorySerializer,
-        responses={
-            200: get_standard_response_schema(CategorySerializer),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Update a specific category",
+        request=CategorySerializer,
+        responses={200: response(CategorySerializer)}
     )
     def put(self, request, pk):
         """Updates a specific category"""
@@ -520,6 +533,7 @@ class CategoryDetailView(APIView):
             if not category:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Category not found",
                     "data": {"error": "Category not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             serializer = CategorySerializer(category, data=request.data)
@@ -527,25 +541,25 @@ class CategoryDetailView(APIView):
                 serializer.save()
                 return Response({
                     "code": SUCCESS_CODE,
+                    "message": "Category updated successfully",
                     "data": serializer.data
                 })
             return Response({
                 "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid data",
                 "data": serializer.errors
             }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(f"Error updating category {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @swagger_auto_schema(
-        operation_description="Delete a specific category",
-        responses={
-            204: get_standard_response_schema({}),
-            404: get_error_response_schema(code=404)
-        }
+    @extend_schema(
+        description="Delete a specific category",
+        responses={204: None}
     )
     def delete(self, request, pk):
         """Deletes a specific category"""
@@ -554,16 +568,19 @@ class CategoryDetailView(APIView):
             if not category:
                 return Response({
                     "code": status.HTTP_404_NOT_FOUND,
+                    "message": "Category not found",
                     "data": {"error": "Category not found"}
                 }, status=status.HTTP_404_NOT_FOUND)
             category.delete()
             return Response({
                 "code": SUCCESS_CODE,
+                "message": "Category deleted successfully",
                 "data": {}
             }, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             logging.error(f"Error deleting category {pk}: {str(e)}")
             return Response({
                 "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "message": "Internal server error",
                 "data": {"error": "Internal server error"}
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

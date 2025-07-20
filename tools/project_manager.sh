@@ -4,12 +4,12 @@
 # 1. Rename the project name (e.g., from 'mito' to 'newname')
 # 2. Rename the Django project directory (e.g., from 'api' to 'newapi')
 #
-# Usage: 
+# Usage:
 #   ./project_manager.sh --project-name <new_name>     # Rename project
 #   ./project_manager.sh --django-project-name <new_name>  # Rename Django project
 #   ./project_manager.sh --dry-run                     # Show what would be changed
 #
-# Example: 
+# Example:
 #   ./project_manager.sh --project-name myproject --dry-run
 #   ./project_manager.sh --django-project-name myapi --dry-run
 #   ./project_manager.sh --project-name myproject --django-project-name myapi
@@ -22,7 +22,7 @@ cd "$CURRENT_PATH"
 DRY_RUN=false
 PROJECT_OLD_NAME="mito"
 PROJECT_NEW_NAME=""
-DJANGO_PROJECT_OLD_NAME="api"
+DJANGO_PROJECT_OLD_NAME="mito"
 DJANGO_PROJECT_NEW_NAME=""
 
 # Function to show usage
@@ -70,12 +70,12 @@ fi
 # Validate project name format
 if [[ -n "$PROJECT_NEW_NAME" && ! "$PROJECT_NEW_NAME" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]]; then
     echo "Error: Project name must:"
-    echo "- Start with a letter" 
+    echo "- Start with a letter"
     echo "- Only contain letters, numbers and underscores"
     exit 1
 fi
 
-# Validate django project name format 
+# Validate django project name format
 if [[ -n "$DJANGO_PROJECT_NEW_NAME" && ! "$DJANGO_PROJECT_NEW_NAME" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]]; then
     echo "Error: Django project name must:"
     echo "- Start with a letter"
@@ -141,7 +141,7 @@ replace_django_project_name() {
                 local pattern="${replacements[$file_pattern]}"
                 local search="${pattern%|*}"
                 local replace="${pattern#*|}"
-                
+
                 # Use wildcard to match filenames
                 for matched_file in $file_pattern; do
                     if [[ -f "$matched_file" ]]; then
