@@ -10,30 +10,59 @@ authors = [
     {name = "Ray Sun", email = "xiaoquqi@gmail.com"}
 ]
 requires-python = ">=3.10"
+
 dependencies = [
+    # Django core framework
     "django==5.1.4",
+
+    # JSON widget for Django admin interface
+    "django-json-widget>=1.1.1",
+
+    # Django REST Framework and authentication
     "djangorestframework==3.15.2",
     "djangorestframework_simplejwt==5.3.1",
     "djangorestframework-camel-case==1.4.2",
     "dj-rest-auth==7.0.0",
     "dj-rest-auth[with_social]",
+
+    # API documentation
     "drf-spectacular",
+
+    # Environment and configuration
     "python-dotenv",
     "dj_database_url==2.3.0",
+
+    # Database drivers
     "mysqlclient==2.1.1",
+
+    # Background task processing
     "celery==5.3.1",
     "django-celery-beat==2.7.0",
     "django_celery_results",
     "flower==2.0.1",
     "redis",
+
+    # Production server
     "gunicorn==20.1.0",
+
+    # Devtoolbox Sample Dependencies, Uncomment to use
+    # "devtoolbox @ git+https://github.com/cloud2ai/devtoolbox.git",
+    # "devtoolbox[llm] @ git+https://github.com/cloud2ai/devtoolbox.git",
+    # "devtoolbox[ocr] @ git+https://github.com/cloud2ai/devtoolbox.git",
+    # "devtoolbox[speech] @ git+https://github.com/cloud2ai/devtoolbox.git",
 ]
 
+# Optional development dependencies
 [project.optional-dependencies]
 dev = [
+    # Debugging and development tools
     "ipdb==0.13.13",
     "ipython==8.29.0",
+
+    # Documentation
     "mkdocs==1.6.1",
+
+    # Code quality and testing
     "flake8==7.1.1",
     "mock==5.1.0",
     "factory-boy==3.3.1",
@@ -41,8 +70,10 @@ dev = [
     "coverage==7.6.8",
 ]
 
+# Package discovery configuration
 [tool.setuptools]
 packages = ["mito"]
 
+# Command-line scripts
 [project.scripts]
 mito-manager = "mito.manage:main"

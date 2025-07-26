@@ -114,6 +114,25 @@ INSTALLED_APPS = [
     # A Django app that stores the results of Celery tasks in the database,
     # allowing for easy retrieval and management of task outcomes.
     'django_celery_results',
+
+    # A Django app that provides a JSON editor widget for Django admin.
+    # To use this widget in your app's admin.py, follow these steps:
+    #
+    # 1. Import JSONEditorWidget:
+    #    from django_json_widget.widgets import JSONEditorWidget
+    #
+    # 2. In your ModelAdmin, override the formfield_overrides for JSONField:
+    #    from django.db import models
+    #    from django.contrib import admin
+    #    from .models import YourModel
+    #
+    #    @admin.register(YourModel)
+    #    class YourModelAdmin(admin.ModelAdmin):
+    #        formfield_overrides = {
+    #            models.JSONField: {'widget': JSONEditorWidget}
+    #        }
+    #
+    'django_json_widget',
 ]
 
 # Project-Specific Apps
