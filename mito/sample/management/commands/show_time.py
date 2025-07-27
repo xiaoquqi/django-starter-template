@@ -25,7 +25,7 @@ import logging
 
 import sys
 
-from v1.sample.tasks import show_current_time
+from sample.tasks import show_current_time
 
 logger = logging.getLogger(__name__)
 

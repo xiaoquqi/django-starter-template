@@ -4,29 +4,36 @@ Mito comes from the biological term "Mitosis" (cell division). Just as cells div
 
 > Like cell division, one perfect template can create countless excellent projects.
 
-## Recent Updates (2025-07-20)
+## Recent Updates (2025-07-27)
 
-This update incorporates practical improvements from several production projects, focusing on developer experience and code maintainability.
+This update includes a major architectural refactoring to follow Django best practices, along with practical improvements from several production projects.
 
 ### 🔧 **Major Improvements**
 
-#### **1. Swagger Documentation Optimization**
+#### **1. Project Structure Refactoring**
+- **Moved applications to core level** following Django best practices
+- **Eliminated version-based app organization** (`v1/` directory structure)
+- **Simplified import paths** from `v1.sample` to `sample`
+- **Improved code maintainability** with cleaner project structure
+- **Enhanced URL routing** with version specification only at the routing level
+
+#### **2. Swagger Documentation Optimization**
 - **Replaced legacy swagger modules** with `drf-spectacular` for better performance
 - **Reduced views.py code complexity** by abstracting common swagger configurations
 - **Implemented best practices** for handling large views.py files (see documentation in views.py headers)
 - **Enhanced API documentation** with standardized response formats and detailed pagination structures
 
-#### **2. Celery Development Workflow Enhancement**
+#### **3. Celery Development Workflow Enhancement**
 - **Added custom management commands** for testing Celery tasks without starting workers
 - **Implemented `show_time` command** with structured logging and debug controls
 - **Improved development efficiency** by allowing synchronous task testing during development
 
-#### **3. Docker Environment Optimization**
+#### **4. Docker Environment Optimization**
 - **Optimized production and development Docker configurations**
 - **Enhanced deployment workflows** for better development-to-production transitions
 - **Improved container orchestration** for both development and production environments
 
-#### **4. URL Structure Improvements**
+#### **5. URL Structure Improvements**
 - **Eliminated trailing slashes** in Django URLs for cleaner API endpoints
 - **Updated auth module URLs** to follow consistent no-trailing-slash pattern
 - **Improved URL consistency** across all API endpoints
@@ -62,7 +69,7 @@ This update incorporates practical improvements from several production projects
 python manage.py show_time --debug
 
 # Structured logging output
-2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Starting task
+2025-07-20 02:56:43,737 - sample.management.commands.show_time - INFO - Starting task
 ```
 
 #### **URL Improvements**
@@ -471,13 +478,13 @@ So a middleware is added to the Django project to convert the response to the fo
 
 ## Django Application
 
-### Why We Have a v1 Directory
+### API Versioning Strategy
 
-In actual development, as features continue to iterate and update, the API interfaces will also change with the increasing demands. Therefore, we have added a v1 directory in the app to accommodate the needs for future version development and iteration. This structure allows us to manage different versions of the API effectively, ensuring backward compatibility while enabling the introduction of new features and improvements in subsequent versions.
+The project uses URL-based versioning where version information is specified only at the routing level (e.g., `/api/v1/`). This approach follows Django best practices by keeping applications at the core level while maintaining clear version separation in the URL structure. This allows us to manage different versions of the API effectively, ensuring backward compatibility while enabling the introduction of new features and improvements in subsequent versions.
 
 ### Sample Application
 
-In the `mito/v1/sample` directory, you will find a complete example of a Django application that implements a blogging system.
+In the `mito/sample` directory, you will find a complete example of a Django application that implements a blogging system.
 
 This sample application contains a simple blog data structure, including posts, tags, and categories. Posts and tags have a many-to-many relationship, while posts and categories have a one-to-many relationship. You can also create a new post with new tags and categories, and the overridden create method will function in the serializers.py file. You can use this application as a sample and develop new applications according to your requirements.
 
@@ -485,14 +492,14 @@ You can test the interface on the Swagger page and find more details in the code
 
 ### Create a new App
 
-To create a new app under the `v1` directory in your Django project, follow these steps:
+To create a new app in your Django project, follow these steps:
 
 1. Open your terminal and navigate to the root directory of your Django project.
 
 2. Run the following command to create a new app (replace `your_new_app` with the desired app name):
 
    ```bash
-   python manage.py startapp v1/your_new_app
+   python manage.py startapp your_new_app
    ```
 
 3. After the app is created, you will need to add it to your project's settings. Open `mito/core/settings/base.py` and add the new app to the `INSTALLED_APPS` list:
@@ -500,29 +507,29 @@ To create a new app under the `v1` directory in your Django project, follow thes
    ```python
    INSTALLED_APPS = [
        ...
-       'v1.your_new_app',
+       'your_new_app',
        ...
    ]
    ```
 
-4. Now, you can start defining your models, views, and serializers in the newly created app directory (`v1/your_new_app`).
+4. Now, you can start defining your models, views, and serializers in the newly created app directory (`your_new_app`).
 
 5. Don't forget to create migrations for your models and apply them:
 
    ```bash
-   python manage.py makemigrations v1/your_new_app
+   python manage.py makemigrations your_new_app
    python manage.py migrate
    ```
 
 6. Finally, you can start developing your API endpoints in the `views.py` file of your new app.
 
-By following these steps, you can effectively create and set up a new app under the `v1` directory in your Django project.
+By following these steps, you can effectively create and set up a new app in your Django project following best practices.
 
 ## Management Commands
 
 ### Custom Management Commands
 
-This project includes custom Django management commands to help with development and testing. These commands are located in the `v1/sample/management/commands/` directory.
+This project includes custom Django management commands to help with development and testing. These commands are located in the `sample/management/commands/` directory.
 
 #### show_time Command
 
@@ -555,11 +562,11 @@ python manage.py show_time --help
 **Example Output:**
 
 ```
-2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Info logging enabled
-2025-07-20 02:56:43,737 - v1.sample.management.commands.show_time - INFO - Starting show_current_time task
-2025-07-20 02:56:43,738 - v1.sample.management.commands.show_time - INFO - Running show_current_time task...
-2025-07-20 02:56:43,748 v1.sample.tasks INFO     Current time: 2025-07-20 02:56:43.748130
-2025-07-20 02:56:43,748 - v1.sample.management.commands.show_time - INFO - Show current time task completed successfully!
+2025-07-20 02:56:43,737 - sample.management.commands.show_time - INFO - Info logging enabled
+2025-07-20 02:56:43,737 - sample.management.commands.show_time - INFO - Starting show_current_time task
+2025-07-20 02:56:43,738 - sample.management.commands.show_time - INFO - Running show_current_time task...
+2025-07-20 02:56:43,748 sample.tasks INFO     Current time: 2025-07-20 02:56:43.748130
+2025-07-20 02:56:43,748 - sample.management.commands.show_time - INFO - Show current time task completed successfully!
 ```
 
 **Creating Custom Commands:**
@@ -567,7 +574,7 @@ python manage.py show_time --help
 To create your own management commands, follow this structure:
 
 ```
-v1/your_app/management/
+your_app/management/
 ├── __init__.py
 └── commands/
     ├── __init__.py

@@ -3,10 +3,10 @@ import os
 from celery.schedules import crontab
 
 # For production environments, use Redis or RabbitMQ as result backend.
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", 
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL",
                                "redis://localhost:6379")
 # Use Redis as result backend, or Django database.
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", 
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND",
                                    "redis://localhost:6379")
 
 # Set the default scheduler for Celery Beat
@@ -43,7 +43,7 @@ CELERY_BEAT_SCHEDULE = {
     'sample_heartbeat': {
         # Specify the path of the Celery task, must be a task defined in the project
         # For example, the heartbeat function defined in cloud_platform/tasks.py
-        'task': 'v1.sample.tasks.heartbeat',
+        'task': 'sample.tasks.heartbeat',
 
         # Define the task schedule
         # 1. Use crontab expression to simulate cron periodic tasks

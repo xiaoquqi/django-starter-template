@@ -18,6 +18,7 @@ from pathlib import Path
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv
 
+from .database import *
 from .globals import *
 from .logging_config import configure_logging
 
@@ -138,7 +139,7 @@ INSTALLED_APPS = [
 # Project-Specific Apps
 INSTALLED_APPS += [
     'accounts',
-    'v1.sample',
+    'sample',
 ]
 
 # The ID of the site that this Django project is associated with.
@@ -191,14 +192,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # ============================
 # Database Configuration
 # ============================
-
-# Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
-DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
-}
+# Database related settings moved to database.py
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
