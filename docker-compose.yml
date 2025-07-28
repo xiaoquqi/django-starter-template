@@ -79,8 +79,8 @@ services:
       - ./data/django/staticfiles:/staticfiles:ro
       - ./data/logs/nginx:/var/log/nginx
     ports:
-      - "10080:80"
-      - "10443:443"
+      - "${NGINX_HTTP_PORT:-10080}:80"
+      - "${NGINX_HTTPS_PORT:-10443}:443"
     networks:
       - mito_network
     depends_on:
